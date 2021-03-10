@@ -8,12 +8,11 @@
 
 namespace HughCube\Laravel\AliFC;
 
-use HughCube\Laravel\AlibabaCloud\Client;
 use Illuminate\Support\Facades\Facade as IlluminateFacade;
 
 /**
- * Class AlibabaCloud
- * @package HughCube\Laravel\AlibabaCloud
+ * Class AliFC
+ * @package HughCube\Laravel\AliFC
  * @method static Client client(string $name = null)
  * @method static Client makeClient(array $config)
  * @method static Client makeClientFromAlibabaCloud($alibabaCloud = null)

@@ -34,7 +34,9 @@ class Client extends FCClient
     public function __construct($config)
     {
         /** 尝试通过AlibabaCloud获取配置信息 */
-        if (empty($config["accessKey"]) && empty($config["accessKeyID"])) {
+        if (is_object($config)) {
+            $config = $this->mergeAlibabaCloudConfig($config);
+        } elseif (empty($config["accessKey"]) && empty($config["accessKeyID"])) {
             $config = $this->mergeAlibabaCloudConfig($config);
         }
 
@@ -53,10 +55,14 @@ class Client extends FCClient
      */
     protected function mergeAlibabaCloudConfig($config)
     {
-        $alibabaCloud = empty($config["alibabaCloud"]) ? null : $config["alibabaCloud"];
-        $alibabaCloud = (empty($alibabaCloud) && !is_array($config) && !empty($config)) ? $config : $alibabaCloud;
-
-        $alibabaCloud = is_object($alibabaCloud) ? $alibabaCloud : AlibabaCloud::client($alibabaCloud);
+        $alibabaCloud = null;
+        if (is_object($config)) {
+            $alibabaCloud = $config;
+        } elseif (is_string($config) || null === $config) {
+            $alibabaCloud = AlibabaCloud::client($config);
+        } elseif (!empty($config["alibabaCloud"])) {
+            $alibabaCloud = AlibabaCloud::client($config["alibabaCloud"]);
+        }
 
         $config = is_array($config) ? $config : [];
         $config["accessKeyID"] = $alibabaCloud->getAccessKey();
@@ -131,14 +137,15 @@ class Client extends FCClient
      */
     public function reflectionApiVersion()
     {
-        static $property = null;
+        static $reflectionProperty = null;
 
-        if (!$property instanceof ReflectionProperty) {
-            $reflection = new ReflectionClass($this);
-            $property = $reflection->getProperty("apiVersion");
+        if (!$reflectionProperty instanceof ReflectionProperty) {
+            $reflection = new ReflectionClass(FCClient::class);
+            $reflectionProperty = $reflection->getProperty("apiVersion");
+            $reflectionProperty->setAccessible(true);
         }
 
-        return $property->getValue($this);
+        return $reflectionProperty->getValue($this);
     }
 
     /**
@@ -151,14 +158,15 @@ class Client extends FCClient
      */
     public function reflectionBuildCommonHeaders($methodType, $path, $customHeaders = [], $unescapedQueries = null)
     {
-        static $method = null;
+        static $reflectionMethod = null;
 
-        if (!$method instanceof ReflectionMethod) {
-            $reflection = new ReflectionClass($this);
-            $method = $reflection->getMethod("buildCommonHeaders");
+        if (!$reflectionMethod instanceof ReflectionMethod) {
+            $reflection = new ReflectionClass(FCClient::class);
+            $reflectionMethod = $reflection->getMethod("buildCommonHeaders");
+            $reflectionMethod->setAccessible(true);
         }
 
-        return $method->invoke($this, $methodType, $path, $customHeaders, $unescapedQueries);
+        return $reflectionMethod->invoke($this, $methodType, $path, $customHeaders, $unescapedQueries);
     }
 
     /**
@@ -171,14 +179,15 @@ class Client extends FCClient
      */
     public function reflectionDoRequest($method, $path, $headers, $data = null, $query = [])
     {
-        static $method = null;
+        static $reflectionMethod = null;
 
-        if (!$method instanceof ReflectionMethod) {
-            $reflection = new ReflectionClass($this);
-            $method = $reflection->getMethod("doRequest");
+        if (!$reflectionMethod instanceof ReflectionMethod) {
+            $reflection = new ReflectionClass(FCClient::class);
+            $reflectionMethod = $reflection->getMethod("doRequest");
+            $reflectionMethod->setAccessible(true);
         }
 
-        return $method->invoke($this, $method, $path, $headers, $data, $query);
+        return $reflectionMethod->invoke($this, $method, $path, $headers, $data, $query);
     }
 
     /**

@@ -8,7 +8,6 @@
 
 namespace HughCube\Laravel\AliFC;
 
-
 use Illuminate\Support\Arr;
 
 class Manager
