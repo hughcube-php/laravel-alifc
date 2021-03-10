@@ -1,0 +1,53 @@
+{
+    "name": "hughcube/laravel-alifc",
+    "description": "AlibabaCloud SDK for Laravel",
+    "keywords": [
+        "laravel",
+        "aliYun",
+        "AliFC"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "hugh.li",
+            "email": "hugh.li@foxmail.com"
+        }
+    ],
+    "require": {
+        "ext-json": "*",
+        "aliyunfc/fc-php-sdk": "^1.2"
+    },
+    "require-dev": {
+        "hughcube/laravel-alibabacloud": "^1.0",
+        "laravel/framework": "^8.5",
+        "laravel/lumen-framework": "^8.0",
+        "phpunit/phpunit": "^7.0",
+        "squizlabs/php_codesniffer": "^3.0",
+        "phpstan/phpstan": "^0.12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "HughCube\\Laravel\\AliFC\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "HughCube\\Laravel\\AliFC\\Tests\\": "tests"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "HughCube\\Laravel\\AliFC\\ServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "phpunit --verbose --coverage-clover=coverage.clover",
+        "phpstan": "phpstan analyse -vvv",
+        "check-style": "phpcs -p --standard=PSR2 src/ -v",
+        "fix-style": "phpcbf -p --standard=PSR2 src/ -v"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
