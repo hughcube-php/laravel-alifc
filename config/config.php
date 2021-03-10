@@ -1,16 +1,14 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: hugh.li
- * Date: 2021/2/23
- * Time: 11:07
- */
 
 return [
     "default" => "default",
+
     "clients" => [
-        "accessKey" => "************",
-        "accessKeySecret" => "************",
-        "regionId" => "************",
+        "default" => [
+            "accessKey" => env("ALIYUN_ACCESS_KEY"),
+            "accessKeySecret" => env("ALIYUN_ACCESS_KEY_SECRET"),
+            "regionId" => env("ALIYUN_REGION"),
+            "accountId" => env("ALIYUN_ACCOUNT")
+        ]
     ]
 ];

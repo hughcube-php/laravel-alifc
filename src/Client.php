@@ -40,8 +40,8 @@ class Client extends FCClient
             $config = $this->mergeAlibabaCloudConfig($config);
         }
 
-        if (empty($config["accessKey"]) && !empty($config["accessKeyID"])) {
-            $config["accessKey"] = $config["accessKeyID"];
+        if (empty($config["accessKeyID"]) && !empty($config["accessKey"])) {
+            $config["accessKeyID"] = $config["accessKey"];
         }
 
         $config["endpoint"] = $this->buildEndpoint($config);
