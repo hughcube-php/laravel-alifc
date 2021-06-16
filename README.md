@@ -5,8 +5,8 @@
     <a href="https://github.com/hughcube-php/laravel-alifc/actions?query=workflow%3ATest">
         <img src="https://github.com/hughcube-php/laravel-alifc/workflows/Test/badge.svg" alt="Test Actions status">
     </a>
-    <a href="https://styleci.io/repos/341509631">
-        <img src="https://github.styleci.io/repos/341509631/shield?branch=master" alt="StyleCI">
+    <a href="https://styleci.io/repos/346307844">
+        <img src="https://github.styleci.io/repos/346307844/shield?branch=master" alt="StyleCI">
     </a>
     <a href="https://scrutinizer-ci.com/g/hughcube-php/laravel-alifc/?branch=master">
         <img src="https://scrutinizer-ci.com/g/hughcube-php/laravel-alifc/badges/coverage.png?b=master" alt="Code Coverage">
