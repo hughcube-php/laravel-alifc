@@ -48,5 +48,8 @@ class ClientTest extends TestCase
             $this->assertSame(Arr::get($config, 'RegionId'), $client->getRegionId());
             $this->assertSame(Arr::get($config, 'AccountId'), $client->getAccountId());
         }
+
+        $regionId = md5(random_bytes(100));
+        $this->assertSame($client->withRegionId($regionId)->getRegionId(), $regionId);
     }
 }

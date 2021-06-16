@@ -120,14 +120,6 @@ class Client extends FCClient
     }
 
     /**
-     * @return array
-     */
-    public function getOptions()
-    {
-        return Arr::get($this->config, 'Options', []);
-    }
-
-    /**
      * @return string
      */
     protected function getEndpoint()
@@ -155,18 +147,7 @@ class Client extends FCClient
      */
     public function withRegionId($regionId)
     {
-        return $this->with(['AccountId' => $regionId]);
-    }
-
-    /**
-     * 变更Options.
-     *
-     * @param array $options
-     * @return static
-     */
-    public function withOptions(array $options)
-    {
-        return $this->with(['Options' => $options]);
+        return $this->with(['RegionId' => $regionId]);
     }
 
     /**
