@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: hugh.li
  * Date: 2021/2/23
- * Time: 11:21
+ * Time: 11:21.
  */
 
 namespace HughCube\Laravel\AliFC;
@@ -47,7 +47,7 @@ class Manager
     {
         $name = null == $name ? $this->getDefaultClient() : $name;
 
-        if (!isset($this->clients[$name])) {
+        if (! isset($this->clients[$name])) {
             $this->clients[$name] = $this->resolve($name);
         }
 
@@ -60,7 +60,6 @@ class Manager
      * @param string|null $name
      *
      * @return Client
-     *
      */
     protected function resolve($name = null)
     {
@@ -79,7 +78,7 @@ class Manager
     }
 
     /**
-     * Make the alifc client instance from alibabaCloud
+     * Make the alifc client instance from alibabaCloud.
      *
      * @param null|string $alibabaCloud
      * @return Client
