@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: hugh.li
  * Date: 2021/2/23
- * Time: 11:04
+ * Time: 11:04.
  */
 
 namespace HughCube\Laravel\AliFC;
@@ -20,7 +20,7 @@ class ServiceProvider extends LaravelServiceProvider
     public function boot()
     {
         if ($this->app instanceof LaravelApplication && $this->app->runningInConsole()) {
-            $source = dirname(__DIR__) . '/config/config.php';
+            $source = dirname(__DIR__).'/config/config.php';
             $this->publishes([$source => config_path('alifc.php')]);
         }
 
@@ -34,7 +34,7 @@ class ServiceProvider extends LaravelServiceProvider
      */
     public function register()
     {
-        $this->app->singleton("alifc", function ($app) {
+        $this->app->singleton('alifc', function ($app) {
             /** @var LaravelApplication|LumenApplication $app */
             $config = $app->make('config')->get('alifc', []);
 

@@ -9,7 +9,7 @@ return [
             'RegionId' => md5(random_bytes(100)),
             'AccountId' => md5(random_bytes(100)),
             'Options' => [
-                /** http Options */
+            /** http Options */
             ],
         ],
         'default2' => [

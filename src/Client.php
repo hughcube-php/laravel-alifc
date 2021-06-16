@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: hugh.li
  * Date: 2021/2/23
- * Time: 11:20
+ * Time: 11:20.
  */
 
 namespace HughCube\Laravel\AliFC;
@@ -50,7 +50,7 @@ class Client extends FCClient
 
         $alibabaCloud = null;
         if (Arr::has($config, 'alibabaCloud')) {
-            $alibabaCloud = AlibabaCloud::client($config["alibabaCloud"]);
+            $alibabaCloud = AlibabaCloud::client($config['alibabaCloud']);
         }
 
         /** AccessKeyID */
@@ -129,7 +129,8 @@ class Client extends FCClient
      */
     protected function getEndpoint()
     {
-        $endpoint = empty($this->config["internal"]) ? "%s.%s.fc.aliyuncs.com" : "%s.%s-internal.fc.aliyuncs.com";
+        $endpoint = empty($this->config['internal']) ? '%s.%s.fc.aliyuncs.com' : '%s.%s-internal.fc.aliyuncs.com';
+
         return sprintf($endpoint, $this->getAccountId(), $this->getRegionId());
     }
 
@@ -166,7 +167,7 @@ class Client extends FCClient
     }
 
     /**
-     * 获取版本号
+     * 获取版本号.
      *
      * @return string
      */
@@ -174,9 +175,9 @@ class Client extends FCClient
     {
         static $reflectionProperty = null;
 
-        if (!$reflectionProperty instanceof ReflectionProperty) {
+        if (! $reflectionProperty instanceof ReflectionProperty) {
             $reflection = new ReflectionClass(FCClient::class);
-            $reflectionProperty = $reflection->getProperty("apiVersion");
+            $reflectionProperty = $reflection->getProperty('apiVersion');
             $reflectionProperty->setAccessible(true);
         }
 
@@ -184,7 +185,7 @@ class Client extends FCClient
     }
 
     /**
-     * 构建请求头
+     * 构建请求头.
      *
      * @param string $method
      * @param string $path
@@ -196,9 +197,9 @@ class Client extends FCClient
     {
         static $reflectionMethod = null;
 
-        if (!$reflectionMethod instanceof ReflectionMethod) {
+        if (! $reflectionMethod instanceof ReflectionMethod) {
             $reflection = new ReflectionClass(FCClient::class);
-            $reflectionMethod = $reflection->getMethod("buildCommonHeaders");
+            $reflectionMethod = $reflection->getMethod('buildCommonHeaders');
             $reflectionMethod->setAccessible(true);
         }
 
@@ -206,7 +207,7 @@ class Client extends FCClient
     }
 
     /**
-     * 构建请求头
+     * 构建请求头.
      *
      * @param string $method
      * @param string $path
@@ -217,9 +218,9 @@ class Client extends FCClient
     {
         static $reflectionMethod = null;
 
-        if (!$reflectionMethod instanceof ReflectionMethod) {
+        if (! $reflectionMethod instanceof ReflectionMethod) {
             $reflection = new ReflectionClass(FCClient::class);
-            $reflectionMethod = $reflection->getMethod("doRequest");
+            $reflectionMethod = $reflection->getMethod('doRequest');
             $reflectionMethod->setAccessible(true);
         }
 
@@ -227,7 +228,7 @@ class Client extends FCClient
     }
 
     /**
-     * 修改自定义域名
+     * 修改自定义域名.
      *
      * @see https://help.aliyun.com/document_detail/191168.html?spm=a2c4g.11186623.6.897.2717f301Ol4jjp
      *
@@ -244,13 +245,14 @@ class Client extends FCClient
         $headers = $this->reflectionBuildCommonHeaders($method, $path, []);
 
         $payload = [];
-        $payload["domainName"] = $domain;
-        empty($cert) or $payload["certConfig"] = $cert;
-        empty($route) or $payload["routeConfig"] = $route;
-        empty($protocol) or $payload["protocol"] = $protocol;
+        $payload['domainName'] = $domain;
+        empty($cert) or $payload['certConfig'] = $cert;
+        empty($route) or $payload['routeConfig'] = $route;
+        empty($protocol) or $payload['protocol'] = $protocol;
 
         $content = json_encode($payload);
         $headers['content-length'] = strlen($content);
+
         return $this->reflectionDoRequest($method, $path, $headers, $content);
     }
 }

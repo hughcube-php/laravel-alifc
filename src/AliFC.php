@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: hugh.li
  * Date: 2021/2/23
- * Time: 10:58
+ * Time: 10:58.
  */
 
 namespace HughCube\Laravel\AliFC;
@@ -11,8 +11,7 @@ namespace HughCube\Laravel\AliFC;
 use Illuminate\Support\Facades\Facade as IlluminateFacade;
 
 /**
- * Class AliFC
- * @package HughCube\Laravel\AliFC
+ * Class AliFC.
  * @method static Client client(string $name = null)
  * @method static Client makeClient(array $config)
  * @method static Client makeClientFromAlibabaCloud(string $alibabaCloud = null)
