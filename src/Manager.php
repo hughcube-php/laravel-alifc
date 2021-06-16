@@ -47,11 +47,11 @@ class Manager
     {
         $name = null == $name ? $this->getDefaultClient() : $name;
 
-        if (isset($this->clients[$name])) {
-            return $this->clients[$name];
+        if (!isset($this->clients[$name])) {
+            $this->clients[$name] = $this->resolve($name);
         }
 
-        return $this->clients[$name] = $this->resolve($name);
+        return $this->clients[$name];
     }
 
     /**
@@ -70,10 +70,10 @@ class Manager
     /**
      * Make the alifc client instance.
      *
-     * @param string $name
+     * @param string|array $config
      * @return Client
      */
-    public function makeClient(array $config)
+    public function makeClient($config)
     {
         return new Client($config);
     }
@@ -81,12 +81,12 @@ class Manager
     /**
      * Make the alifc client instance from alibabaCloud
      *
-     * @param null $alibabaCloud
+     * @param null|string $alibabaCloud
      * @return Client
      */
     public function makeClientFromAlibabaCloud($alibabaCloud = null)
     {
-        return new Client($alibabaCloud);
+        return static::makeClient(['alibabaCloud' => $alibabaCloud]);
     }
 
     /**

@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Facade as IlluminateFacade;
  * @package HughCube\Laravel\AliFC
  * @method static Client client(string $name = null)
  * @method static Client makeClient(array $config)
- * @method static Client makeClientFromAlibabaCloud($alibabaCloud = null)
+ * @method static Client makeClientFromAlibabaCloud(string $alibabaCloud = null)
  */
 class AliFC extends IlluminateFacade
 {

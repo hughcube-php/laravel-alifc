@@ -34,14 +34,11 @@ class ServiceProvider extends LaravelServiceProvider
      */
     public function register()
     {
-        $this->app->singleton(
-            "alifc",
-            function ($app) {
-                /** @var LaravelApplication|LumenApplication $app */
-                $config = $app->make('config')->get('alifc', []);
+        $this->app->singleton("alifc", function ($app) {
+            /** @var LaravelApplication|LumenApplication $app */
+            $config = $app->make('config')->get('alifc', []);
 
-                return new Manager($config);
-            }
-        );
+            return new Manager($config);
+        });
     }
 }

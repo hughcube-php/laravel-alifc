@@ -18,116 +18,151 @@ use ReflectionProperty;
 class Client extends FCClient
 {
     /**
-     * @var FCClient
-     */
-    protected $client;
-
-    /**
      * @var array 阿里云的配置
      */
     protected $config;
 
     /**
      * Client constructor.
-     * @param array $config
+     * @param array|string $config
      */
     public function __construct($config)
     {
-        /** 尝试通过AlibabaCloud获取配置信息 */
-        if (is_object($config)) {
-            $config = $this->mergeAlibabaCloudConfig($config);
-        } elseif (empty($config["accessKey"]) && empty($config["accessKeyID"])) {
-            $config = $this->mergeAlibabaCloudConfig($config);
-        }
+        $this->config = $this->formatConfig($config);
 
-        if (empty($config["accessKeyID"]) && !empty($config["accessKey"])) {
-            $config["accessKeyID"] = $config["accessKey"];
-        }
-
-        $config["endpoint"] = $this->buildEndpoint($config);
-
-        parent::__construct(($this->config = $config));
+        parent::__construct(array_merge($config, [
+            'endpoint' => $this->getEndpoint(),
+            'accessKeyID' => $this->getAccessKeyId(),
+            'accessKeySecret' => $this->getAccessKeySecret(),
+            'securityToken' => $this->getSecurityToken(),
+        ]));
     }
 
     /**
-     * @param $config
-     * @return array
+     * @param array|string $config
+     * @return mixed|string[]
      */
-    protected function mergeAlibabaCloudConfig($config)
+    protected function formatConfig($config)
     {
+        if (is_string($config)) {
+            $config = ['alibabaCloud' => $config];
+        }
+
         $alibabaCloud = null;
-        if (is_object($config)) {
-            $alibabaCloud = $config;
-        } elseif (is_string($config) || null === $config) {
-            $alibabaCloud = AlibabaCloud::client($config);
-        } elseif (!empty($config["alibabaCloud"])) {
+        if (Arr::has($config, 'alibabaCloud')) {
             $alibabaCloud = AlibabaCloud::client($config["alibabaCloud"]);
         }
 
-        $config = is_array($config) ? $config : [];
-        $config["accessKeyID"] = $alibabaCloud->getAccessKey();
-        $config["accessKeySecret"] = $alibabaCloud->getAccessKeySecret();
-        $config["regionId"] = $alibabaCloud->getRegionId();
-        $config["accountId"] = $alibabaCloud->getAccountId();
+        /** AccessKeyID */
+        if (empty($config['AccessKeyID']) && null !== $alibabaCloud) {
+            $config['AccessKeyID'] = $alibabaCloud->getAccessKeyId();
+        }
+
+        /** AccessKeySecret */
+        if (empty($config['AccessKeySecret']) && null !== $alibabaCloud) {
+            $config['AccessKeySecret'] = $alibabaCloud->getAccessKeySecret();
+        }
+
+        /** RegionId */
+        if (empty($config['RegionId']) && null !== $alibabaCloud) {
+            $config['RegionId'] = $alibabaCloud->getRegionId();
+        }
+
+        /** AccountId */
+        if (empty($config['AccountId']) && null !== $alibabaCloud) {
+            $config['AccountId'] = $alibabaCloud->getAccountId();
+        }
 
         return $config;
     }
 
     /**
-     * @param array $config
-     * @return string
+     * @return string|null
      */
-    protected function buildEndpoint(array $config)
+    public function getAccessKeyId()
     {
-        $endpoint = empty($config["internal"]) ? "%s.%s.fc.aliyuncs.com" : "%s.%s-internal.fc.aliyuncs.com";
-
-        return sprintf($endpoint, $config["accountId"], $config["regionId"]);
+        return Arr::get($this->config, 'AccessKeyID');
     }
 
     /**
-     * @return string
-     */
-    public function getAccessKey()
-    {
-        return Arr::get($this->config, "accessKeyID");
-    }
-
-    /**
-     * @return string
+     * @return string|null
      */
     public function getAccessKeySecret()
     {
-        return Arr::get($this->config, "accessKeySecret");
+        return Arr::get($this->config, 'AccessKeySecret');
     }
 
     /**
-     * @return string
+     * @return string|null
+     */
+    public function getSecurityToken()
+    {
+        return Arr::get($this->config, 'SecurityToken');
+    }
+
+    /**
+     * @return string|null
      */
     public function getRegionId()
     {
-        return Arr::get($this->config, "regionId");
+        return Arr::get($this->config, 'RegionId');
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getAccountId()
+    {
+        return Arr::get($this->config, 'AccountId');
+    }
+
+    /**
+     * @return array
+     */
+    public function getOptions()
+    {
+        return Arr::get($this->config, 'Options', []);
     }
 
     /**
      * @return string
      */
-    public function getAccountId()
+    protected function getEndpoint()
     {
-        return Arr::get($this->config, "accountId");
+        $endpoint = empty($this->config["internal"]) ? "%s.%s.fc.aliyuncs.com" : "%s.%s-internal.fc.aliyuncs.com";
+        return sprintf($endpoint, $this->getAccountId(), $this->getRegionId());
     }
 
     /**
-     * 变更所在地区, 主要在账号密码不变更, 切换地区使用
+     * @return static
+     */
+    public function with($config)
+    {
+        $class = static::class;
+
+        return new $class(array_merge($this->config, $config));
+    }
+
+    /**
+     * 变更所在地区.
      *
      * @param string $regionId
      * @return static
      */
     public function withRegionId($regionId)
     {
-        $config = $this->config;
-        $config["regionId"] = $regionId;
+        return $this->with(['AccountId' => $regionId]);
+    }
 
-        return new static($config);
+    /**
+     * 变更Options.
+     *
+     * @param array $options
+     * @return static
+     */
+    public function withOptions(array $options)
+    {
+        return $this->with(['Options' => $options]);
     }
 
     /**
@@ -151,12 +186,13 @@ class Client extends FCClient
     /**
      * 构建请求头
      *
-     * @param $method
-     * @param $path
-     * @param $headers
+     * @param string $method
+     * @param string $path
+     * @param array $customHeaders
+     * @param array|null $unescapedQueries
      * @return array
      */
-    public function reflectionBuildCommonHeaders($methodType, $path, $customHeaders = [], $unescapedQueries = null)
+    public function reflectionBuildCommonHeaders($method, $path, $customHeaders = [], $unescapedQueries = null)
     {
         static $reflectionMethod = null;
 
@@ -166,15 +202,15 @@ class Client extends FCClient
             $reflectionMethod->setAccessible(true);
         }
 
-        return $reflectionMethod->invoke($this, $methodType, $path, $customHeaders, $unescapedQueries);
+        return $reflectionMethod->invoke($this, $method, $path, $customHeaders, $unescapedQueries);
     }
 
     /**
      * 构建请求头
      *
-     * @param $method
-     * @param $path
-     * @param $headers
+     * @param string $method
+     * @param string $path
+     * @param array $headers
      * @return array
      */
     public function reflectionDoRequest($method, $path, $headers, $data = null, $query = [])
@@ -195,7 +231,7 @@ class Client extends FCClient
      *
      * @see https://help.aliyun.com/document_detail/191168.html?spm=a2c4g.11186623.6.897.2717f301Ol4jjp
      *
-     * @param $domain
+     * @param string $domain
      * @param null|array $cert
      * @param null|array $route
      * @param null|string $protocol

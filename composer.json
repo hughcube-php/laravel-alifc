@@ -14,16 +14,17 @@
         }
     ],
     "require": {
+        "php": "7.*|8.*",
         "ext-json": "*",
+        "illuminate/support": "5.*|6.*|7.*|8.*",
         "aliyunfc/fc-php-sdk": "^1.2"
     },
     "require-dev": {
-        "hughcube/laravel-alibabacloud": "^1.0",
-        "laravel/framework": "^8.5",
-        "laravel/lumen-framework": "^8.0",
-        "phpunit/phpunit": "^7.0",
-        "squizlabs/php_codesniffer": "^3.0",
-        "phpstan/phpstan": "^0.12.0"
+        "laravel/lumen-framework": "*",
+        "squizlabs/php_codesniffer": "*",
+        "phpstan/phpstan": "*",
+        "orchestra/testbench": "*",
+        "hughcube/laravel-alibabacloud": "^1.1"
     },
     "autoload": {
         "psr-4": {

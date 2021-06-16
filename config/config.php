@@ -1,14 +1,17 @@
 <?php
 
 return [
-    "default" => "default",
-
-    "clients" => [
-        "default" => [
-            "accessKey" => env("ALIYUN_ACCESS_KEY"),
-            "accessKeySecret" => env("ALIYUN_ACCESS_KEY_SECRET"),
-            "regionId" => env("ALIYUN_REGION"),
-            "accountId" => env("ALIYUN_ACCOUNT")
-        ]
-    ]
+    'default' => 'default',
+    'clients' => [
+        'default' => [
+            'AccessKeyID' => '************',
+            'AccessKeySecret' => '************',
+            'RegionId' => '************',
+            'AccountId' => '************',
+            'SecurityToken' => '************',
+            'Options' => [
+                /** http Options */
+            ],
+        ],
+    ],
 ];
