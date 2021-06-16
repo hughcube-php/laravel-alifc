@@ -10,6 +10,7 @@ namespace HughCube\Laravel\AliFC;
 
 use AliyunFC\Client as FCClient;
 use HughCube\Laravel\AlibabaCloud\AlibabaCloud;
+use HughCube\Laravel\AlibabaCloud\Client as AlibabaCloudClient;
 use Illuminate\Support\Arr;
 use ReflectionClass;
 use ReflectionMethod;
@@ -49,7 +50,9 @@ class Client extends FCClient
         }
 
         $alibabaCloud = null;
-        if (Arr::has($config, 'alibabaCloud')) {
+        if (Arr::has($config, 'alibabaCloud') && $config['alibabaCloud'] instanceof AlibabaCloudClient) {
+            $alibabaCloud = $config['alibabaCloud'];
+        } elseif (Arr::has($config, 'alibabaCloud')) {
             $alibabaCloud = AlibabaCloud::client($config['alibabaCloud']);
         }
 
@@ -175,7 +178,7 @@ class Client extends FCClient
     {
         static $reflectionProperty = null;
 
-        if (! $reflectionProperty instanceof ReflectionProperty) {
+        if (!$reflectionProperty instanceof ReflectionProperty) {
             $reflection = new ReflectionClass(FCClient::class);
             $reflectionProperty = $reflection->getProperty('apiVersion');
             $reflectionProperty->setAccessible(true);
@@ -197,7 +200,7 @@ class Client extends FCClient
     {
         static $reflectionMethod = null;
 
-        if (! $reflectionMethod instanceof ReflectionMethod) {
+        if (!$reflectionMethod instanceof ReflectionMethod) {
             $reflection = new ReflectionClass(FCClient::class);
             $reflectionMethod = $reflection->getMethod('buildCommonHeaders');
             $reflectionMethod->setAccessible(true);
@@ -218,7 +221,7 @@ class Client extends FCClient
     {
         static $reflectionMethod = null;
 
-        if (! $reflectionMethod instanceof ReflectionMethod) {
+        if (!$reflectionMethod instanceof ReflectionMethod) {
             $reflection = new ReflectionClass(FCClient::class);
             $reflectionMethod = $reflection->getMethod('doRequest');
             $reflectionMethod->setAccessible(true);

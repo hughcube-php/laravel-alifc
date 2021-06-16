@@ -8,6 +8,7 @@
 
 namespace HughCube\Laravel\AliFC;
 
+use HughCube\Laravel\AlibabaCloud\Client as AlibabaCloudClient;
 use Illuminate\Support\Arr;
 
 class Manager
@@ -47,7 +48,7 @@ class Manager
     {
         $name = null == $name ? $this->getDefaultClient() : $name;
 
-        if (! isset($this->clients[$name])) {
+        if (!isset($this->clients[$name])) {
             $this->clients[$name] = $this->resolve($name);
         }
 
@@ -80,7 +81,7 @@ class Manager
     /**
      * Make the alifc client instance from alibabaCloud.
      *
-     * @param null|string $alibabaCloud
+     * @param null|string|AlibabaCloudClient $alibabaCloud
      * @return Client
      */
     public function makeClientFromAlibabaCloud($alibabaCloud = null)
