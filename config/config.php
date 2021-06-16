@@ -8,10 +8,7 @@ return [
             'AccessKeySecret' => '************',
             'RegionId' => '************',
             'AccountId' => '************',
-            'SecurityToken' => '************',
-            'Options' => [
-            /** http Options */
-            ],
+            //'SecurityToken' => '************'
         ],
     ],
 ];
