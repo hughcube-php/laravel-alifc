@@ -10,7 +10,7 @@ return [
             'AccountId' => '************',
             'SecurityToken' => '************',
             'Options' => [
-                /** http Options */
+            /** http Options */
             ],
         ],
     ],

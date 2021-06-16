@@ -8,7 +8,6 @@
 
 namespace HughCube\Laravel\AliFC\Tests;
 
-use HughCube\Laravel\AlibabaCloud\AlibabaCloud;
 use HughCube\Laravel\AlibabaCloud\ServiceProvider as AlibabaCloudServiceProvider;
 use HughCube\Laravel\AliFC\ServiceProvider;
 use Illuminate\Auth\Passwords\PasswordResetServiceProvider;
@@ -46,9 +45,8 @@ class TestCase extends OrchestraTestCase
     {
         parent::getEnvironmentSetUp($app);
 
-        $app['config']->set('alibabaCloud', (require __DIR__ . '/config/alibabaCloud.php'));
+        $app['config']->set('alibabaCloud', (require __DIR__.'/config/alibabaCloud.php'));
 
-        $app['config']->set('alifc', (require __DIR__ . '/config//alifc.php'));
-
+        $app['config']->set('alifc', (require __DIR__.'/config//alifc.php'));
     }
 }
