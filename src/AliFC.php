@@ -9,12 +9,13 @@
 namespace HughCube\Laravel\AliFC;
 
 use Illuminate\Support\Facades\Facade as IlluminateFacade;
+use HughCube\Laravel\AlibabaCloud\Client as AlibabaCloudClient;
 
 /**
  * Class AliFC.
  * @method static Client client(string $name = null)
  * @method static Client makeClient(array $config)
- * @method static Client makeClientFromAlibabaCloud(string $alibabaCloud = null)
+ * @method static Client makeClientFromAlibabaCloud(string|AlibabaCloudClient|null $alibabaCloud = null)
  */
 class AliFC extends IlluminateFacade
 {
