@@ -52,7 +52,7 @@ class Client extends FCClient
         $alibabaCloud = null;
         if (Arr::has($config, 'alibabaCloud') && $config['alibabaCloud'] instanceof AlibabaCloudClient) {
             $alibabaCloud = $config['alibabaCloud'];
-        } elseif (Arr::has($config, 'alibabaCloud')) {
+        } elseif (array_key_exists("alibabaCloud", $config)) {
             $alibabaCloud = AlibabaCloud::client($config['alibabaCloud']);
         }
 
