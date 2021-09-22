@@ -8,20 +8,21 @@
 
 namespace HughCube\Laravel\AliFC\Tests;
 
-use AliyunFC\Client as FCClient;
-use HughCube\Laravel\AlibabaCloud\AlibabaCloud;
 use HughCube\Laravel\AliFC\AliFC;
 use HughCube\Laravel\AliFC\Client;
 use Illuminate\Support\Arr;
+use Throwable;
 
 class ClientTest extends TestCase
 {
     public function testInstanceOf()
     {
         $this->assertInstanceOf(Client::class, AliFC::client());
-        $this->assertInstanceOf(FCClient::class, AliFC::client());
     }
 
+    /**
+     * @throws Throwable
+     */
     public function testClient()
     {
         $this->assertClient(
@@ -34,22 +35,23 @@ class ClientTest extends TestCase
         }
     }
 
+    /**
+     * @throws Throwable
+     */
     protected function assertClient(Client $client, $config)
     {
-        if (Arr::has($config, 'alibabaCloud')) {
-            $alibabaCloud = AlibabaCloud::client(Arr::get($config, 'alibabaCloud'));
-            $this->assertSame($alibabaCloud->getAccessKeyId(), $client->getAccessKeyId());
-            $this->assertSame($alibabaCloud->getAccessKeySecret(), $client->getAccessKeySecret());
-            $this->assertSame($alibabaCloud->getRegionId(), $client->getRegionId());
-            $this->assertSame($alibabaCloud->getAccountId(), $client->getAccountId());
-        } else {
-            $this->assertSame(Arr::get($config, 'AccessKeyID'), $client->getAccessKeyId());
-            $this->assertSame(Arr::get($config, 'AccessKeySecret'), $client->getAccessKeySecret());
-            $this->assertSame(Arr::get($config, 'RegionId'), $client->getRegionId());
-            $this->assertSame(Arr::get($config, 'AccountId'), $client->getAccountId());
-        }
+        $this->assertSame(Arr::get($config, 'AccessKeyID'), $client->getAccessKeyId());
+        $this->assertSame(Arr::get($config, 'AccessKeySecret'), $client->getAccessKeySecret());
+        $this->assertSame(Arr::get($config, 'RegionId'), $client->getRegionId());
+        $this->assertSame(Arr::get($config, 'AccountId'), $client->getAccountId());
 
         $regionId = md5(random_bytes(100));
         $this->assertSame($client->withRegionId($regionId)->getRegionId(), $regionId);
+
+        $response = $client->invoke('tbk', 'schedule');
+        $this->assertJson($response->getBody()->getContents());
+
+        $response = AliFC::invoke('tbk', 'schedule');
+        $this->assertJson($response->getBody()->getContents());
     }
 }

@@ -18,7 +18,7 @@ class TestCase extends OrchestraTestCase
     /**
      * @inheritDoc
      */
-    protected function getApplicationProviders($app)
+    protected function getApplicationProviders($app): array
     {
         $providers = parent::getApplicationProviders($app);
 
@@ -30,7 +30,7 @@ class TestCase extends OrchestraTestCase
     /**
      * @inheritDoc
      */
-    protected function getPackageProviders($app)
+    protected function getPackageProviders($app): array
     {
         return [
             AlibabaCloudServiceProvider::class,
@@ -45,8 +45,6 @@ class TestCase extends OrchestraTestCase
     {
         parent::getEnvironmentSetUp($app);
 
-        $app['config']->set('alibabaCloud', (require __DIR__.'/config/alibabaCloud.php'));
-
-        $app['config']->set('alifc', (require __DIR__.'/config//alifc.php'));
+        $app['config']->set('alifc', (require __DIR__.'/config/alifc.php'));
     }
 }
