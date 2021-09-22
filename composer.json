@@ -17,7 +17,7 @@
         "php": "8.*",
         "ext-json": "*",
         "illuminate/support": "5.*|6.*|7.*|8.*",
-        "guzzlehttp/guzzle": "^7.3"
+        "guzzlehttp/guzzle": "6.*|7.*"
     },
     "require-dev": {
         "laravel/lumen-framework": "*",
