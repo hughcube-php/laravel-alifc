@@ -20,11 +20,19 @@ use Throwable;
 
 class Process
 {
-    protected ?Container $container;
+    protected ?Container $container = null;
 
-    protected ?string $content;
+    protected ?string $content = null;
 
-    protected ?string $connectionName;
+    protected ?string $connectionName = null;
+
+    protected ?Job $job = null;
+
+    public static function instance(): static
+    {
+        $class = static::class;
+        return new $class();
+    }
 
     /**
      * @throws BindingResolutionException
@@ -43,6 +51,8 @@ class Process
 
             throw $exception;
         }
+
+        return $job->getJobId();
     }
 
     /**
@@ -53,6 +63,14 @@ class Process
     {
         $this->content = $content;
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getContent(): string
+    {
+        return $this->content;
     }
 
     /**
@@ -73,7 +91,7 @@ class Process
     /**
      * @return Container
      */
-    public function getContainer(): Container
+    protected function getContainer(): Container
     {
         if (is_callable($this->container)) {
             return call_user_func($this->container);
@@ -89,9 +107,13 @@ class Process
     /**
      * @return Job
      */
-    protected function getJob(): Job
+    public function getJob(): Job
     {
-        return new Job($this->getContainer(), $this->content, $this->getConnectionName());
+        if (!$this->job instanceof Job) {
+            $this->job = new Job($this->getContainer(), $this->getContent(), $this->getConnectionName());
+        }
+
+        return $this->job;
     }
 
     /**
