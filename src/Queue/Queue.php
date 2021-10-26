@@ -61,7 +61,7 @@ class Queue extends IlluminateQueue implements QueueContract, ClearableQueue
      * Create a new fc queue instance.
      *
      * @param  Fc  $fc
-     * @param  string  $client
+     * @param  ?string  $client
      * @param  string  $service
      * @param  string  $function
      * @param  string|null  $qualifier
@@ -69,7 +69,7 @@ class Queue extends IlluminateQueue implements QueueContract, ClearableQueue
      */
     public function __construct(
         Fc $fc,
-        string $client,
+        ?string $client,
         string $service,
         string $function,
         ?string $qualifier = null,
