@@ -8,7 +8,9 @@
 
 namespace HughCube\Laravel\AliFC;
 
+use HughCube\Laravel\AliFC\Queue\Connector;
 use Illuminate\Foundation\Application as LaravelApplication;
+use Illuminate\Queue\QueueManager;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Laravel\Lumen\Application as LumenApplication;
 
@@ -32,6 +34,21 @@ class ServiceProvider extends IlluminateServiceProvider
      * Register the provider.
      */
     public function register()
+    {
+        $this->registerManager();
+        $this->registerQueueConnector();
+    }
+
+    protected function registerQueueConnector()
+    {
+        $this->app->resolving('queue', function (QueueManager $queue) {
+            $queue->extend('alifc', function () {
+                return new Connector($this->app['alifc']);
+            });
+        });
+    }
+
+    protected function registerManager()
     {
         $this->app->singleton(AliFC::getFacadeAccessor(), function ($app) {
             return new Manager();

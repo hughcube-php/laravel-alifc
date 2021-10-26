@@ -9,12 +9,12 @@
 namespace HughCube\Laravel\AliFC;
 
 use Illuminate\Support\Facades\Facade as IlluminateFacade;
-use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ResponseInterface as Response;
 
 /**
  * @method static Client client(string $name = null)
- * @method static ResponseInterface invoke(string $service, string $function, ?string $qualifier = null, ?string $payload = null, array $options = [])
- * @method static ResponseInterface request(string $method, string $path, array $options = [])
+ * @method static Response invoke(string $service, string $function, ?string $qualifier = null, ?string $payload = null, array $options = [])
+ * @method static Response request(string $method, string $path, array $options = [])
  */
 class AliFC extends IlluminateFacade
 {
