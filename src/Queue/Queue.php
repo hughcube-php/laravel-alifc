@@ -9,6 +9,7 @@
 
 namespace HughCube\Laravel\AliFC\Queue;
 
+use Carbon\Carbon;
 use DateInterval;
 use DateTimeInterface;
 use Exception;
@@ -194,6 +195,21 @@ class Queue extends IlluminateQueue implements QueueContract, ClearableQueue
     protected function getRandomId(): string
     {
         return Str::random(32);
+    }
+
+    /**
+     * Create a payload string from the given job and data.
+     *
+     * @param  string  $job
+     * @param  string  $queue
+     * @param  mixed  $data
+     * @return array
+     */
+    protected function createPayloadArray($job, $queue, $data = ''): array
+    {
+        return array_merge(parent::createPayloadArray($job, $queue, $data), [
+            'createdAt' => Carbon::now()->toISOString(true)
+        ]);
     }
 
     /**
