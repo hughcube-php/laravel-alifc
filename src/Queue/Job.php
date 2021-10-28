@@ -33,9 +33,9 @@ class Job extends \Illuminate\Queue\Jobs\Job implements JobContract
      *
      * @param  Container  $container
      * @param  string  $job
-     * @param  string  $connectionName
+     * @param  ?string  $connectionName
      */
-    public function __construct(Container $container, string $job, string $connectionName)
+    public function __construct(Container $container, string $job, ?string $connectionName = null)
     {
         $this->container = $container;
         $this->job = $job;
