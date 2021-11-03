@@ -85,6 +85,11 @@ class Auth
         return true == $this->getConfig('Internal');
     }
 
+    public function getServiceIp(): ?string
+    {
+        return $this->getConfig('ServiceIp');
+    }
+
     /**
      * @return string
      */
@@ -170,6 +175,11 @@ class Auth
                 $hash = hash_hmac('sha256', $data, $this->getAccessKeySecret(), true);
                 $signature = sprintf('FC %s:%s', $this->getAccessKeyId(), base64_encode($hash));
                 $request = $request->withHeader('Authorization', $signature);
+
+                if (!empty($ip = $this->getServiceIp())) {
+                    $host = $request->getUri()->getHost();
+                    $request = $request->withUri($request->getUri()->withHost($ip))->withHeader('Host', $host);
+                }
 
                 return $handler($request, $options);
             };
