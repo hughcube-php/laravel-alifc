@@ -33,7 +33,7 @@ class Auth
      */
     public function __construct(array $config)
     {
-        $this->config = array_merge_recursive([
+        $this->config = array_replace_recursive([
             'Http' => [
                 RequestOptions::TIMEOUT => 10.0,
                 RequestOptions::CONNECT_TIMEOUT => 10.0,
