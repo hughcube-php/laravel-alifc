@@ -8,6 +8,7 @@
 
 namespace HughCube\Laravel\AliFC;
 
+use HughCube\Laravel\AliFC\Commands\JobPayloadCommand;
 use HughCube\Laravel\AliFC\Queue\Connector;
 use Illuminate\Foundation\Application as LaravelApplication;
 use Illuminate\Queue\QueueManager;
@@ -35,6 +36,7 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     public function register()
     {
+        $this->registerCommand();
         $this->registerManager();
         $this->registerQueueConnector();
     }
@@ -53,5 +55,12 @@ class ServiceProvider extends IlluminateServiceProvider
         $this->app->singleton(AliFC::getFacadeAccessor(), function ($app) {
             return new Manager();
         });
+    }
+
+    protected function registerCommand()
+    {
+        $this->commands([
+            JobPayloadCommand::class,
+        ]);
     }
 }

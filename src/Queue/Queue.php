@@ -81,7 +81,6 @@ class Queue extends IlluminateQueue implements QueueContract, ClearableQueue
         $this->service = $service;
         $this->function = $function;
         $this->qualifier = $qualifier;
-        $this->client = $client;
         $this->dispatchAfterCommit = $dispatchAfterCommit;
     }
 

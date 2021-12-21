@@ -20,6 +20,7 @@
         "guzzlehttp/guzzle": "6.*|7.*"
     },
     "require-dev": {
+        "laravel/framework": "*",
         "laravel/lumen-framework": "*",
         "squizlabs/php_codesniffer": "*",
         "phpstan/phpstan": "*",
