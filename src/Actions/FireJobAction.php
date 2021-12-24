@@ -55,8 +55,12 @@ class FireJobAction
 
     protected function isAllow(): bool
     {
-        $value = getenv('ALLOW_FIRE_JOB');
-        return false !== filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        /** Default allow if not set */
+        if (false === ($value = getenv('ALLOW_FIRE_JOB'))) {
+            return true;
+        }
+
+        return true === filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
