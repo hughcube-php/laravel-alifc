@@ -56,7 +56,7 @@ class FireJobAction
     protected function isAllow(): bool
     {
         /** Default allow if not set */
-        if (false === ($value = getenv('ALLOW_FIRE_JOB'))) {
+        if (false === ($value = getenv('HUGHCUBE_ALIFC_ALLOW_FIRE_JOB'))) {
             return true;
         }
 
