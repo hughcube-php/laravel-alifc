@@ -14,7 +14,6 @@ use HughCube\Laravel\AliFC\Manager;
 use HughCube\Laravel\AliFC\Queue\Queue;
 use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Support\Arr;
 use ReflectionClass;
 use function json_decode;
 

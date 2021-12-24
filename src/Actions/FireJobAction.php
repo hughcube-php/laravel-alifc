@@ -16,9 +16,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Lumen\Application as LumenApplication;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Throwable;
 
-class JobFireAction
+class FireJobAction
 {
     use ParseJob;
 
@@ -33,6 +34,10 @@ class JobFireAction
      */
     public function action(): Response
     {
+        if (!$this->isAllow()) {
+            throw new AccessDeniedHttpException();
+        }
+
         $content = $this->getRequest()->getContent();
 
         $job = null;
@@ -46,6 +51,12 @@ class JobFireAction
             $jobId = is_object($job) && method_exists($job, 'getJobId') ? $job->getJobId() : null;
             return $this->asJson(['job' => $jobId], 500, $exception->getMessage());
         }
+    }
+
+    protected function isAllow(): bool
+    {
+        $value = getenv('ALLOW_FIRE_JOB');
+        return false !== filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
