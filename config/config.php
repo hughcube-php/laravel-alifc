@@ -18,4 +18,9 @@ return [
             ],
         ]
     ],
+
+    'handlers' => [
+        //'pre_freeze' => \HughCube\Laravel\Knight\Octane\Actions\WaitTaskCompleteAction::class,
+        //'pre_stop' => \HughCube\Laravel\Knight\Octane\Actions\WaitTaskCompleteAction::class,
+    ],
 ];
