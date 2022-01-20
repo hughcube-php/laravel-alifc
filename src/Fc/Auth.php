@@ -162,10 +162,12 @@ class Auth
         return function (callable $handler) {
             return function (RequestInterface $request, array $options) use ($handler) {
 
-                $request = $request->withUri($request->getUri()->withScheme($this->getScheme()));
-
                 if (!$request->hasHeader('Host')) {
                     $request = $request->withHeader('Host', $request->getUri()->getHost());
+                }
+
+                if ($request->getUri()->getScheme() !== $this->getScheme()) {
+                    $request = $request->withUri($request->getUri()->withScheme($this->getScheme()));
                 }
 
                 if ($this->isCustomDomainRequest($request)) {
@@ -266,6 +268,6 @@ class Auth
      */
     private function isCustomDomainRequest(RequestInterface $request): bool
     {
-        return $request->getUri()->getHost() !== $this->getEndpoint();
+        return $request->getHeaderLine('Host') !== $this->getEndpoint();
     }
 }
