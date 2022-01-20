@@ -219,9 +219,10 @@ class Auth
     private function implodeFcResource(RequestInterface $request): string
     {
         $queryArray = [];
-        if (empty($query = $request->getUri()->getQuery())) {
+        if (!empty($query = $request->getUri()->getQuery())) {
             parse_str($query, $queryArray);
         }
+        ksort($queryArray);
 
         $params = [];
         foreach ($queryArray as $name => $values) {
@@ -229,11 +230,17 @@ class Auth
                 $params[] = sprintf('%s=%s', $name, $value);
             }
         }
-        ksort($params);
 
-        return implode("\n", array_values(array_filter([
-            Util::unescape($request->getUri()->getPath()),
-            implode("\n", $params)
-        ])));
+        $resource = Util::unescape($request->getUri()->getPath());
+
+        if (!empty($params)) {
+            $resource .= ("\n".implode("\n", $params));
+        }//
+        /** 如果host不相等, 判断为http触发器处理的请求 */
+        elseif ($request->getUri()->getHost() !== $this->getEndpoint()) {
+            $resource .= "\n";
+        }
+
+        return $resource;
     }
 }

@@ -38,12 +38,7 @@ class Client extends Auth
     {
         $response = $this->request(strtoupper($method), $path, $options);
         $contents = $response->getBody()->getContents();
-
-        $results = null;
-        try {
-            $results = json_decode($contents, true);
-        } catch (Throwable $exception) {
-        }
+        $results = json_decode($contents, true);
 
         if (JSON_ERROR_NONE != ($code = json_last_error())) {
             throw new JsonException(json_last_error_msg(), $code);
