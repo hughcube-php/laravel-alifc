@@ -11,6 +11,7 @@ namespace HughCube\Laravel\AliFC;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use HughCube\Laravel\AliFC\Fc\Auth;
+use HughCube\PUrl\Url as PUrl;
 use Illuminate\Support\Arr;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
@@ -21,9 +22,9 @@ class Client extends Auth
     /**
      * @throws GuzzleException
      */
-    public function request(string $method, string $path, array $options = []): ResponseInterface
+    public function request(string $method, $uri, array $options = []): ResponseInterface
     {
-        return $this->getHttpClient()->request(strtoupper($method), $path, $options);
+        return $this->getHttpClient()->request(strtoupper($method), $uri, $options);
     }
 
     /**

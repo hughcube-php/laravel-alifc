@@ -90,13 +90,26 @@ class Auth
         return $this->getConfig('ServiceIp');
     }
 
+    public function userHttps(): bool
+    {
+        return true === $this->getConfig('userHttps', false);
+    }
+
     /**
      * @return string
      */
-    protected function getEndpoint(): string
+    public function getEndpoint(): string
     {
         $endpoint = $this->isInternal() ? '%s.%s-internal.fc.aliyuncs.com' : '%s.%s.fc.aliyuncs.com';
         return sprintf($endpoint, $this->getAccountId(), $this->getRegionId());
+    }
+
+    /**
+     * @return string
+     */
+    private function getScheme(): string
+    {
+        return $this->userHttps() ? 'https' : 'http';
     }
 
     /**
@@ -132,7 +145,7 @@ class Auth
             $handler->push($this->signHandler());
 
             $this->httpClient = new HttpClient(array_merge([
-                'base_uri' => sprintf("http://%s", $this->getEndpoint())
+                'base_uri' => sprintf("%s://%s", $this->getScheme(), $this->getEndpoint())
             ], $config));
         }
 
@@ -148,8 +161,19 @@ class Auth
     {
         return function (callable $handler) {
             return function (RequestInterface $request, array $options) use ($handler) {
+
+                $request = $request->withUri($request->getUri()->withScheme($this->getScheme()));
+
                 if (!$request->hasHeader('Host')) {
                     $request = $request->withHeader('Host', $request->getUri()->getHost());
+                }
+
+                if ($this->isCustomDomainRequest($request)) {
+                    $request = $request->withUri($request->getUri()->withHost($this->getEndpoint()), true);
+                }
+
+                if (!empty($ip = $this->getServiceIp())) {
+                    $request = $request->withUri($request->getUri()->withHost($ip), true);
                 }
 
                 if (!$request->hasHeader('Date')) {
@@ -175,11 +199,6 @@ class Auth
                 $hash = hash_hmac('sha256', $data, $this->getAccessKeySecret(), true);
                 $signature = sprintf('FC %s:%s', $this->getAccessKeyId(), base64_encode($hash));
                 $request = $request->withHeader('Authorization', $signature);
-
-                if (!empty($ip = $this->getServiceIp())) {
-                    $host = $request->getUri()->getHost();
-                    $request = $request->withUri($request->getUri()->withHost($ip))->withHeader('Host', $host);
-                }
 
                 return $handler($request, $options);
             };
@@ -232,15 +251,21 @@ class Auth
         }
 
         $resource = Util::unescape($request->getUri()->getPath());
-
         if (!empty($params)) {
             $resource .= ("\n".implode("\n", $params));
-        }//
-        /** 如果host不相等, 判断为http触发器处理的请求 */
-        elseif ($request->getUri()->getHost() !== $this->getEndpoint()) {
+        } elseif ($this->isCustomDomainRequest($request)) {
             $resource .= "\n";
         }
 
         return $resource;
+    }
+
+    /**
+     * @param  RequestInterface  $request
+     * @return bool
+     */
+    private function isCustomDomainRequest(RequestInterface $request): bool
+    {
+        return $request->getUri()->getHost() !== $this->getEndpoint();
     }
 }
