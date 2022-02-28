@@ -51,7 +51,7 @@ class Manager extends IlluminateManager
      * @return mixed
      * @throws BindingResolutionException
      */
-    public function getConfig(string $name, $default = null): mixed
+    public function getConfig(string $name, $default = null)
     {
         /** @var Repository $config */
         $config = $this->getContainer()->make('config');
@@ -108,7 +108,7 @@ class Manager extends IlluminateManager
     /**
      * @inheritDoc
      */
-    public function extend($driver, Closure $callback): static
+    public function extend($driver, Closure $callback)
     {
         return parent::extend($driver, $callback->bindTo($this, $this));
     }

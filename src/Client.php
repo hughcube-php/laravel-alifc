@@ -11,7 +11,6 @@ namespace HughCube\Laravel\AliFC;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use HughCube\Laravel\AliFC\Fc\Auth;
-use HughCube\PUrl\Url as PUrl;
 use Illuminate\Support\Arr;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;

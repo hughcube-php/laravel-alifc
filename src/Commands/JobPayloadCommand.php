@@ -41,7 +41,7 @@ class JobPayloadCommand extends Command
         $job = $this->makeJob();
         $queue = $this->getQueue();
 
-        $reflection = new ReflectionClass($queue::class);
+        $reflection = new ReflectionClass(get_class($queue));
         $method = $reflection->getMethod('createPayload');
         $payload = $method->invokeArgs($queue, [$job, $queue]);
 
@@ -67,7 +67,7 @@ class JobPayloadCommand extends Command
      * @return array|null
      * @throws Exception
      */
-    protected function getData(): null|array
+    protected function getData(): ?array
     {
         $data = $this->option('data');
         if (empty($data)) {
@@ -84,11 +84,6 @@ class JobPayloadCommand extends Command
 
     protected function getQueue(): Queue
     {
-        return new Queue(
-            new Manager(),
-            'default',
-            'default',
-            'default'
-        );
+        return new Queue(new Manager(), 'default', 'default', 'default');
     }
 }

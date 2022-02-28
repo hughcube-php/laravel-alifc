@@ -8,17 +8,17 @@
 
 namespace HughCube\Laravel\AliFC\Actions;
 
-use HughCube\Laravel\AliFC\Queue\ParseJob;
+use HughCube\Laravel\AliFC\Queue\Job;
+use HughCube\Laravel\Knight\Routing\Controller;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Throwable;
 
-class InvokeAction extends Action
+class InvokeAction extends Controller
 {
-    use ParseJob;
-
     /**
      * @return Response
      * @throws BindingResolutionException
@@ -40,7 +40,7 @@ class InvokeAction extends Action
             $this->getQueueFailer()->log('alifc', 'default', $content, $exception);
             app(ExceptionHandler::class)->report($exception);
             $jobId = is_object($job) && method_exists($job, 'getJobId') ? $job->getJobId() : null;
-            return $this->asJson(['job' => $jobId], 500, $exception->getMessage());
+            return $this->asJson(['job' => $jobId, 'message' => $exception->getMessage()], 500);
         }
     }
 
@@ -52,5 +52,41 @@ class InvokeAction extends Action
         }
 
         return true === filter_var($value, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * @return FailedJobProviderInterface
+     * @throws BindingResolutionException
+     */
+    protected function getQueueFailer(): FailedJobProviderInterface
+    {
+        return $this->getContainer()->make('queue.failer');
+    }
+
+    /**
+     * @param  mixed  $content
+     * @return Job
+     */
+    protected function parseJob($content): Job
+    {
+        return new Job($this->getContainer(), $this->parseJobPayload($content));
+    }
+
+    /**
+     * @param  string  $content
+     * @return string
+     */
+    protected function parseJobPayload(string $content): string
+    {
+        /** 兼容来自触发器 */
+        try {
+            $json = json_decode($content, true);
+            if (isset($json['payload']) && is_string($json['payload'])) {
+                return $json['payload'];
+            }
+        } catch (\Throwable $exception) {
+        }
+
+        return $content;
     }
 }

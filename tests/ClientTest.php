@@ -8,7 +8,6 @@
 
 namespace HughCube\Laravel\AliFC\Tests;
 
-use GuzzleHttp\RequestOptions;
 use HughCube\Laravel\AliFC\AliFC;
 use HughCube\Laravel\AliFC\Client;
 use Illuminate\Support\Arr;

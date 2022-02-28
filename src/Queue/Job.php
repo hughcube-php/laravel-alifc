@@ -19,14 +19,14 @@ class Job extends \Illuminate\Queue\Jobs\Job implements JobContract
      *
      * @var string
      */
-    protected string $job;
+    protected $job;
 
     /**
      * The JSON decoded version of "$job".
      *
      * @var array
      */
-    protected array $decoded;
+    protected $decoded;
 
     /**
      * Create a new job instance.

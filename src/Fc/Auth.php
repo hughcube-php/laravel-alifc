@@ -21,12 +21,12 @@ class Auth
     /**
      * @var HttpClient|null
      */
-    private ?HttpClient $httpClient = null;
+    private $httpClient = null;
 
     /**
      * @var array 阿里云的配置
      */
-    private array $config;
+    private $config;
 
     /**
      * @param  array  $config
@@ -45,7 +45,7 @@ class Auth
         ], $config);
     }
 
-    public function getConfig(string $key, $default = null): mixed
+    public function getConfig(string $key, $default = null)
     {
         return Arr::get($this->config, $key, $default);
     }
@@ -116,7 +116,7 @@ class Auth
      * @param  array  $config
      * @return static
      */
-    public function with(array $config): static
+    public function with(array $config): Auth
     {
         $class = static::class;
         return new $class(array_merge($this->config, $config));
@@ -128,7 +128,7 @@ class Auth
      * @param  string  $regionId
      * @return static
      */
-    public function withRegionId(string $regionId): static
+    public function withRegionId(string $regionId): Auth
     {
         return $this->with(['RegionId' => $regionId]);
     }

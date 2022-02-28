@@ -12,7 +12,6 @@ namespace HughCube\Laravel\AliFC\Queue;
 use HughCube\Laravel\AliFC\Manager as Fc;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 use Illuminate\Queue\Connectors\ConnectorInterface;
-use JetBrains\PhpStorm\Pure;
 
 class Connector implements ConnectorInterface
 {
@@ -20,7 +19,7 @@ class Connector implements ConnectorInterface
      * fc connections.
      * @var Fc
      */
-    protected Fc $fc;
+    protected $fc;
 
     /**
      * Create a new connector instance.
@@ -36,7 +35,6 @@ class Connector implements ConnectorInterface
      * @param  array  $config
      * @return QueueContract
      */
-    #[Pure]
     public function connect(array $config): QueueContract
     {
         return new Queue(

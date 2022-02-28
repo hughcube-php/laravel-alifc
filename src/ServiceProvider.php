@@ -14,10 +14,13 @@ use HughCube\Laravel\AliFC\Actions\PreFreezeAction;
 use HughCube\Laravel\AliFC\Actions\PreStopAction;
 use HughCube\Laravel\AliFC\Commands\JobPayloadCommand;
 use HughCube\Laravel\AliFC\Queue\Connector;
+use HughCube\Laravel\Knight\Http\Middleware\HttpsGuard;
 use Illuminate\Foundation\Application as LaravelApplication;
+use Illuminate\Http\Request;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
+use Illuminate\Support\Str;
 use Laravel\Lumen\Application as LumenApplication;
 
 class ServiceProvider extends IlluminateServiceProvider
@@ -30,6 +33,7 @@ class ServiceProvider extends IlluminateServiceProvider
         $this->bootPublishes();
         $this->bootCommands();
         $this->bootHandlers();
+        $this->bootHttpsGuard();
     }
 
     /**
@@ -101,5 +105,28 @@ class ServiceProvider extends IlluminateServiceProvider
         if (!app()->routesAreCached() && false !== $handler) {
             Route::any('/pre-stop', $handler)->name('alifc_handler_pre_stop');
         }
+    }
+
+    protected function bootHttpsGuard()
+    {
+        HttpsGuard::customExcept(sprintf('%s-%s', md5(__METHOD__), crc32(__METHOD__)), function (Request $request) {
+            $fcHeaderCount = 0;
+            foreach ($request->headers->all() as $name => $values) {
+                if (Str::startsWith($name, 'x-fc-')) {
+                    $fcHeaderCount++;
+                }
+            }
+            if ($fcHeaderCount < 5) {
+                return false;
+            }
+
+            foreach (['initialize', 'invoke', 'pre-freeze', 'pre-stop'] as $uri) {
+                if ($request->fullUrlIs($uri) || $request->is($uri)) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
     }
 }

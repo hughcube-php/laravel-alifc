@@ -8,7 +8,6 @@
 
 namespace HughCube\Laravel\AliFC\Tests;
 
-use HughCube\Laravel\AlibabaCloud\ServiceProvider as AlibabaCloudServiceProvider;
 use HughCube\Laravel\AliFC\ServiceProvider;
 use Illuminate\Auth\Passwords\PasswordResetServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
@@ -33,7 +32,6 @@ class TestCase extends OrchestraTestCase
     protected function getPackageProviders($app): array
     {
         return [
-            AlibabaCloudServiceProvider::class,
             ServiceProvider::class,
         ];
     }

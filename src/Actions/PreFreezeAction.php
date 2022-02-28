@@ -8,9 +8,10 @@
 
 namespace HughCube\Laravel\AliFC\Actions;
 
+use HughCube\Laravel\Knight\Routing\Controller;
 use Symfony\Component\HttpFoundation\Response;
 
-class PreFreezeAction extends Action
+class PreFreezeAction extends Controller
 {
     /**
      * @return Response

@@ -28,35 +28,35 @@ class Queue extends IlluminateQueue implements QueueContract, ClearableQueue
      *
      * @var Fc
      */
-    protected Fc $fc;
+    protected $fc;
 
     /**
      * The client name.
      *
      * @var null|string
      */
-    protected ?string $client;
+    protected $client;
 
     /**
      * The service name.
      *
      * @var string
      */
-    protected string $service;
+    protected $service;
 
     /**
      * The function name.
      *
      * @var string
      */
-    protected string $function;
+    protected $function;
 
     /**
      * The function qualifier.
      *
      * @var ?string
      */
-    protected ?string $qualifier;
+    protected $qualifier;
 
     /**
      * Create a new fc queue instance.
@@ -104,7 +104,7 @@ class Queue extends IlluminateQueue implements QueueContract, ClearableQueue
      * @return mixed
      * @throws Exception|GuzzleException
      */
-    public function push($job, $data = '', $queue = null): mixed
+    public function push($job, $data = '', $queue = null)
     {
         return $this->enqueueUsing(
             $job,
@@ -159,7 +159,7 @@ class Queue extends IlluminateQueue implements QueueContract, ClearableQueue
      * @return mixed
      * @throws GuzzleException
      */
-    public function later($delay, $job, $data = '', $queue = null): mixed
+    public function later($delay, $job, $data = '', $queue = null)
     {
         return $this->push($job, $data, $queue);
     }

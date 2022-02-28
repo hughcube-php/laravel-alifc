@@ -14,19 +14,16 @@
         }
     ],
     "require": {
-        "php": "8.*",
+        "php": ">=7.2|8.*",
         "ext-json": "*",
-        "illuminate/support": "5.*|6.*|7.*|8.*",
-        "guzzlehttp/guzzle": "6.*|7.*",
-        "hughcube/purl": "^1.0|^2.0"
+        "hughcube/laravel-knight": "^3.0"
     },
     "require-dev": {
         "laravel/framework": "*",
         "laravel/lumen-framework": "*",
         "squizlabs/php_codesniffer": "*",
         "phpstan/phpstan": "*",
-        "orchestra/testbench": "*",
-        "hughcube/laravel-alibabacloud": "^1.1"
+        "orchestra/testbench": "*"
     },
     "autoload": {
         "psr-4": {
@@ -47,7 +44,7 @@
     },
     "scripts": {
         "test": "phpunit --verbose --coverage-clover=coverage.clover",
-        "phpstan": "phpstan analyse -vvv",
+        "phpstan": "phpstan analyse --memory-limit=-1 -vvv",
         "check-style": "phpcs -p --standard=PSR2 src/ -v",
         "fix-style": "phpcbf -p --standard=PSR2 src/ -v"
     },

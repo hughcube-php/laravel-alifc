@@ -8,9 +8,10 @@
 
 namespace HughCube\Laravel\AliFC\Actions;
 
+use HughCube\Laravel\Knight\Routing\Controller;
 use Symfony\Component\HttpFoundation\Response;
 
-class InitializeAction extends Action
+class InitializeAction extends Controller
 {
     /**
      * @return Response
