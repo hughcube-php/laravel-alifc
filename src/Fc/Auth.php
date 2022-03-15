@@ -9,19 +9,17 @@
 namespace HughCube\Laravel\AliFC\Fc;
 
 use Closure;
-use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\RequestOptions;
+use HughCube\GuzzleHttp\Client as HttpClient;
+use HughCube\GuzzleHttp\HttpClientTrait;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Psr\Http\Message\RequestInterface;
 
 class Auth
 {
-    /**
-     * @var HttpClient|null
-     */
-    private $httpClient = null;
+    use HttpClientTrait;
 
     /**
      * @var array 阿里云的配置
@@ -33,16 +31,7 @@ class Auth
      */
     public function __construct(array $config)
     {
-        $this->config = array_replace_recursive([
-            'Http' => [
-                RequestOptions::TIMEOUT => 10.0,
-                RequestOptions::CONNECT_TIMEOUT => 10.0,
-                RequestOptions::READ_TIMEOUT => 10.0,
-                RequestOptions::HTTP_ERRORS => false,
-                RequestOptions::HEADERS => []
-
-            ],
-        ], $config);
+        $this->config = $config;
     }
 
     public function getConfig(string $key, $default = null)
@@ -85,14 +74,21 @@ class Auth
         return true == $this->getConfig('Internal');
     }
 
-    public function getServiceIp(): ?string
+    /**
+     * @return string
+     */
+    public function getScheme(): string
     {
-        return $this->getConfig('ServiceIp');
+        return $this->getConfig('scheme') ?? 'https';
     }
 
-    public function userHttps(): bool
+    /**
+     * @param  string  $host
+     * @return null|string
+     */
+    public function getHostResolve(string $host): ?string
     {
-        return true === $this->getConfig('userHttps', false);
+        return $this->getConfig("HostResolves.$host") ?: null;
     }
 
     /**
@@ -104,13 +100,6 @@ class Auth
         return sprintf($endpoint, $this->getAccountId(), $this->getRegionId());
     }
 
-    /**
-     * @return string
-     */
-    private function getScheme(): string
-    {
-        return $this->userHttps() ? 'https' : 'http';
-    }
 
     /**
      * @param  array  $config
@@ -136,20 +125,16 @@ class Auth
     /**
      * @return HttpClient
      */
-    public function getHttpClient(): HttpClient
+    protected function createHttpClient(): HttpClient
     {
-        if (!$this->httpClient instanceof HttpClient) {
-            $config = $this->getConfig('Http', []);
+        $config = $this->getConfig('Http', []);
 
-            $config['handler'] = $handler = HandlerStack::create();
-            $handler->push($this->signHandler());
+        $config['handler'] = $handler = HandlerStack::create();
+        $handler->push($this->signHandler());
 
-            $this->httpClient = new HttpClient(array_merge([
-                'base_uri' => sprintf("%s://%s", $this->getScheme(), $this->getEndpoint())
-            ], $config));
-        }
-
-        return $this->httpClient;
+        return new HttpClient(array_merge([
+            'base_uri' => sprintf("%s://%s", $this->getScheme(), $this->getEndpoint())
+        ], $config));
     }
 
     /**
@@ -166,16 +151,8 @@ class Auth
                     $request = $request->withHeader('Host', $request->getUri()->getHost());
                 }
 
-                if ($request->getUri()->getScheme() !== $this->getScheme()) {
-                    $request = $request->withUri($request->getUri()->withScheme($this->getScheme()));
-                }
-
-                if ($this->isCustomDomainRequest($request)) {
-                    $request = $request->withUri($request->getUri()->withHost($this->getEndpoint()), true);
-                }
-
-                if (!empty($ip = $this->getServiceIp())) {
-                    $request = $request->withUri($request->getUri()->withHost($ip), true);
+                if (!empty($resolve = $this->getHostResolve($request->getHeaderLine('Host')))) {
+                    $request = $request->withUri($request->getUri()->withHost($resolve), true);
                 }
 
                 if (!$request->hasHeader('Date')) {
@@ -201,6 +178,13 @@ class Auth
                 $hash = hash_hmac('sha256', $data, $this->getAccessKeySecret(), true);
                 $signature = sprintf('FC %s:%s', $this->getAccessKeyId(), base64_encode($hash));
                 $request = $request->withHeader('Authorization', $signature);
+
+                /** When YOU forcibly change the host using HTTPS, HTTPS authentication must be disabled. */
+                if ('https' === $request->getUri()->getScheme()
+                    && $request->getUri()->getHost() !== $request->getHeaderLine('Host')
+                ) {
+                    $options[RequestOptions::VERIFY] = false;
+                }
 
                 return $handler($request, $options);
             };
@@ -255,19 +239,10 @@ class Auth
         $resource = Util::unescape($request->getUri()->getPath());
         if (!empty($params)) {
             $resource .= ("\n".implode("\n", $params));
-        } elseif ($this->isCustomDomainRequest($request)) {
+        } elseif ($request->getHeaderLine('Host') !== $this->getEndpoint()) {
             $resource .= "\n";
         }
 
         return $resource;
-    }
-
-    /**
-     * @param  RequestInterface  $request
-     * @return bool
-     */
-    private function isCustomDomainRequest(RequestInterface $request): bool
-    {
-        return $request->getHeaderLine('Host') !== $this->getEndpoint();
     }
 }

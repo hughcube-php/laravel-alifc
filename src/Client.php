@@ -8,43 +8,15 @@
 
 namespace HughCube\Laravel\AliFC;
 
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use HughCube\Laravel\AliFC\Fc\Auth;
-use Illuminate\Support\Arr;
-use JsonException;
 use Psr\Http\Message\ResponseInterface;
-use Throwable;
 
 class Client extends Auth
 {
-    /**
-     * @throws GuzzleException
-     */
     public function request(string $method, $uri, array $options = []): ResponseInterface
     {
-        return $this->getHttpClient()->request(strtoupper($method), $uri, $options);
-    }
-
-    /**
-     * @param  string  $method
-     * @param  string  $path
-     * @param  array  $options
-     * @return array
-     * @throws GuzzleException
-     * @throws JsonException
-     */
-    public function jsonRequest(string $method, string $path, array $options = []): array
-    {
-        $response = $this->request(strtoupper($method), $path, $options);
-        $contents = $response->getBody()->getContents();
-        $results = json_decode($contents, true);
-
-        if (JSON_ERROR_NONE != ($code = json_last_error())) {
-            throw new JsonException(json_last_error_msg(), $code);
-        }
-
-        return $results;
+        return $this->getHttpClient()->requestLazy(strtoupper($method), $uri, $options);
     }
 
     /**
@@ -54,7 +26,6 @@ class Client extends Auth
      * @param  string|null  $payload
      * @param  array  $options
      * @return ResponseInterface
-     * @throws GuzzleException
      */
     public function invoke(
         string $service,
@@ -67,72 +38,79 @@ class Client extends Auth
         $service = empty($qualifier) ? $service : "$service.$qualifier";
         $path = sprintf('/%s/services/%s/functions/%s/invocations', $this->getApiVersion(), $service, $function);
 
-        return $this->request('POST', $path, [
-            RequestOptions::HEADERS => array_filter([
-                'X-Fc-Invocation-Type' => Arr::get($options, 'type', 'Sync'),
-                'X-Fc-Log-Type' => Arr::get($options, 'log', 'None'),
-                'X-Fc-Stateful-Async-Invocation-Id' => Arr::get($options, 'id')
-            ]),
-            RequestOptions::BODY => $payload,
-        ]);
+        $options[RequestOptions::BODY] = $payload;
+        $options[RequestOptions::HEADERS]['X-Fc-Invocation-Type'] = $options['type'] ?? 'Sync';
+        $options[RequestOptions::HEADERS]['X-Fc-Log-Type'] = $options['log'] ?? 'None';
+
+        if (empty($invokeId = $options['id'] ?? null)) {
+            $options[RequestOptions::HEADERS]['X-Fc-Stateful-Async-Invocation-Id'] = $invokeId;
+        }
+
+        return $this->request('POST', $path, $options);
     }
 
     /**
      * @param  string  $name
      * @param  string  $description
      * @param  array  $options
-     * @return array
-     * @throws GuzzleException
-     * @throws JsonException
+     * @return ResponseInterface
      *
      * @see https://help.aliyun.com/document_detail/175256.html
      */
-    public function createService(string $name, string $description = "", array $options = []): array
+    public function createService(string $name, string $description = "", array $options = []): ResponseInterface
     {
         $path = sprintf('/%s/services', $this->getApiVersion());
-        return $this->jsonRequest('POST', $path, [
-            RequestOptions::JSON => array_merge($options, [
-                'serviceName' => $name,
-                'description' => $description,
-            ]),
-        ]);
+        $options[RequestOptions::JSON]['serviceName'] = $name;
+        $options[RequestOptions::JSON]['description'] = $description;
+
+        return $this->request('POST', $path, $options);
     }
 
     /**
      * @param  string  $name
      * @param  string|null  $qualifier
-     * @return array
-     * @throws Throwable
-     *
+     * @param  array  $options
+     * @return ResponseInterface
      * @see https://help.aliyun.com/document_detail/189225.html
      */
-    public function getService(string $name, ?string $qualifier = null): array
+    public function getService(string $name, ?string $qualifier = null, array $options = []): ResponseInterface
     {
         $name = empty($qualifier) ? $name : "$name.$qualifier";
         $path = sprintf('/%s/services/%s', $this->getApiVersion(), $name);
 
-        return $this->jsonRequest('GET', $path);
+        return $this->request('GET', $path, $options);
     }
 
-    /**
-     * @throws GuzzleException
-     * @throws JsonException
-     */
+
     public function updateCustomDomain(
         string $domain,
         ?array $cert = null,
         ?array $route = null,
-        string $protocol = null
-    ): ?array {
+        string $protocol = null,
+        array $options = []
+    ): ResponseInterface {
         $path = sprintf('/%s/custom-domains/%s', $this->getApiVersion(), $domain);
 
-        return $this->jsonRequest('PUT', $path, [
-            RequestOptions::JSON => array_filter([
-                'domainName' => $domain,
-                'certConfig' => $cert,
-                'protocol' => $protocol,
-                'routeConfig' => $route,
-            ]),
-        ]);
+        $options[RequestOptions::JSON]['domainName'] = $domain;
+
+        if (!empty($cert)) {
+            $options[RequestOptions::JSON]['certConfig'] = $cert;
+        }
+
+        if (!empty($route)) {
+            $options[RequestOptions::JSON]['routeConfig'] = $route;
+        }
+
+        if (!empty($protocol)) {
+            $options[RequestOptions::JSON]['protocol'] = $protocol;
+        }
+
+        return $this->request('PUT', $path, $options);
+    }
+
+    public function getCustomDomain(string $domain, array $options = []): ResponseInterface
+    {
+        $path = sprintf('/%s/custom-domains/%s', $this->getApiVersion(), $domain);
+        return $this->request('GET', $path, $options);
     }
 }
