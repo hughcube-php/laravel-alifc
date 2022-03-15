@@ -13,6 +13,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 
 /**
  * @method static Client client(string $name = null)
+ * @method static Client makeClient(array $config)
  * @method static Response invoke(string $service, string $function, ?string $qualifier = null, ?string $payload = null, array $options = [])
  * @method static Response request(string $method, string $path, array $options = [])
  *

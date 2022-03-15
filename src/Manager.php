@@ -97,12 +97,17 @@ class Manager extends IlluminateManager
      */
     protected function createDriver($driver): Client
     {
-        return new Client($this->configuration($driver));
+        return $this->makeClient($this->configuration($driver));
     }
 
     public function client($name = null): Client
     {
         return $this->driver($name);
+    }
+
+    public function makeClient(array $config): Client
+    {
+        return new Client($config);
     }
 
     /**
