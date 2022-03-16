@@ -9,6 +9,7 @@
 namespace HughCube\Laravel\AliFC;
 
 use Illuminate\Support\Facades\Facade as IlluminateFacade;
+use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface as Response;
 
 /**
@@ -22,6 +23,8 @@ use Psr\Http\Message\ResponseInterface as Response;
  */
 class AliFC extends IlluminateFacade
 {
+    protected static $RId;
+
     /**
      * Get the registered name of the component.
      *
@@ -30,5 +33,17 @@ class AliFC extends IlluminateFacade
     public static function getFacadeAccessor(): string
     {
         return 'alifc';
+    }
+
+    /**
+     * Gets the current life cycle ID.
+     * @return mixed
+     */
+    public static function getRId()
+    {
+        if (empty(static::$RId)) {
+            static::$RId = Str::random();
+        }
+        return static::$RId;
     }
 }
