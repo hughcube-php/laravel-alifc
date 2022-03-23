@@ -113,4 +113,15 @@ class Client extends Auth
         $path = sprintf('/%s/custom-domains/%s', $this->getApiVersion(), $domain);
         return $this->request('GET', $path, $options);
     }
+
+    public function storagePath(string $path = ''): string
+    {
+        $storagePath = config('alifc.storagePath') ?: storage_path();
+
+        if (empty($path)) {
+            return $storagePath;
+        }
+
+        return rtrim($storagePath, '/').DIRECTORY_SEPARATOR.ltrim($path, '/');
+    }
 }

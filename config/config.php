@@ -26,4 +26,6 @@ return [
         //'pre_freeze' => \HughCube\Laravel\Octane\Actions\WaitTaskCompleteAction::class,
         //'pre_stop' => \HughCube\Laravel\Octane\Actions\WaitTaskCompleteAction::class,
     ],
+
+    'storagePath' => null,
 ];
