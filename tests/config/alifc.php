@@ -16,6 +16,6 @@ return [
                 ],
                 'verify' => true == env('DEBUG_HTTP_VERIFY', true),
             ],
-        ]
+        ],
     ],
 ];

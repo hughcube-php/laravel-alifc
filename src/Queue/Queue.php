@@ -4,7 +4,7 @@
  * Created by PhpStorm.
  * User: hugh.li
  * Date: 2021/10/26
- * Time: 10:13
+ * Time: 10:13.
  */
 
 namespace HughCube\Laravel\AliFC\Queue;
@@ -102,6 +102,7 @@ class Queue extends IlluminateQueue implements QueueContract, ClearableQueue
      * @param  mixed  $data
      * @param  string|null  $queue
      * @return mixed
+     *
      * @throws Exception|GuzzleException
      */
     public function push($job, $data = '', $queue = null)
@@ -124,6 +125,7 @@ class Queue extends IlluminateQueue implements QueueContract, ClearableQueue
      * @param  string|null  $queue
      * @param  array  $options
      * @return string
+     *
      * @throws GuzzleException
      * @throws Exception
      */
@@ -157,6 +159,7 @@ class Queue extends IlluminateQueue implements QueueContract, ClearableQueue
      * @param  mixed  $data
      * @param  string|null  $queue
      * @return mixed
+     *
      * @throws GuzzleException
      */
     public function later($delay, $job, $data = '', $queue = null)
@@ -207,7 +210,7 @@ class Queue extends IlluminateQueue implements QueueContract, ClearableQueue
     protected function createPayloadArray($job, $queue, $data = ''): array
     {
         return array_merge(parent::createPayloadArray($job, $queue, $data), [
-            'createdAt' => Carbon::now()->toISOString(true)
+            'createdAt' => Carbon::now()->toISOString(true),
         ]);
     }
 

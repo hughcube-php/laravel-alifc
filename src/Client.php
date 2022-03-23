@@ -34,7 +34,6 @@ class Client extends Auth
         ?string $payload = null,
         array $options = []
     ): ResponseInterface {
-
         $service = empty($qualifier) ? $service : "$service.$qualifier";
         $path = sprintf('/%s/services/%s/functions/%s/invocations', $this->getApiVersion(), $service, $function);
 
@@ -57,7 +56,7 @@ class Client extends Auth
      *
      * @see https://help.aliyun.com/document_detail/175256.html
      */
-    public function createService(string $name, string $description = "", array $options = []): ResponseInterface
+    public function createService(string $name, string $description = '', array $options = []): ResponseInterface
     {
         $path = sprintf('/%s/services', $this->getApiVersion());
         $options[RequestOptions::JSON]['serviceName'] = $name;
@@ -71,6 +70,7 @@ class Client extends Auth
      * @param  string|null  $qualifier
      * @param  array  $options
      * @return ResponseInterface
+     *
      * @see https://help.aliyun.com/document_detail/189225.html
      */
     public function getService(string $name, ?string $qualifier = null, array $options = []): ResponseInterface
@@ -80,7 +80,6 @@ class Client extends Auth
 
         return $this->request('GET', $path, $options);
     }
-
 
     public function updateCustomDomain(
         string $domain,
@@ -93,15 +92,15 @@ class Client extends Auth
 
         $options[RequestOptions::JSON]['domainName'] = $domain;
 
-        if (!empty($cert)) {
+        if (! empty($cert)) {
             $options[RequestOptions::JSON]['certConfig'] = $cert;
         }
 
-        if (!empty($route)) {
+        if (! empty($route)) {
             $options[RequestOptions::JSON]['routeConfig'] = $route;
         }
 
-        if (!empty($protocol)) {
+        if (! empty($protocol)) {
             $options[RequestOptions::JSON]['protocol'] = $protocol;
         }
 
@@ -111,6 +110,7 @@ class Client extends Auth
     public function getCustomDomain(string $domain, array $options = []): ResponseInterface
     {
         $path = sprintf('/%s/custom-domains/%s', $this->getApiVersion(), $domain);
+
         return $this->request('GET', $path, $options);
     }
 }

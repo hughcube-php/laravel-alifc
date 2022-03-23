@@ -37,6 +37,7 @@ class AliFC extends IlluminateFacade
 
     /**
      * Gets the current life cycle ID.
+     *
      * @return mixed
      */
     public static function getRId()
@@ -44,6 +45,7 @@ class AliFC extends IlluminateFacade
         if (empty(static::$RId)) {
             static::$RId = Str::random();
         }
+
         return static::$RId;
     }
 }

@@ -49,6 +49,7 @@ class Manager extends IlluminateManager
      * @param  string  $name
      * @param  null  $default
      * @return mixed
+     *
      * @throws BindingResolutionException
      */
     public function getConfig(string $name, $default = null)
@@ -56,32 +57,34 @@ class Manager extends IlluminateManager
         /** @var Repository $config */
         $config = $this->getContainer()->make('config');
 
-        $key = sprintf("%s.%s", AliFC::getFacadeAccessor(), $name);
+        $key = sprintf('%s.%s', AliFC::getFacadeAccessor(), $name);
+
         return $config->get($key, $default);
     }
 
     /**
      * @inheritDoc
+     *
      * @throws BindingResolutionException
      */
     public function getDefaultDriver(): string
     {
-        return $this->getConfig("default", "default");
+        return $this->getConfig('default', 'default');
     }
 
     /**
      * Get the configuration for a store.
      *
      * @param  string|null  $name
-     *
      * @return array
+     *
      * @throws InvalidArgumentException|BindingResolutionException
      */
     protected function configuration(string $name = null): array
     {
         $name = $name ?: $this->getDefaultDriver();
         $config = $this->getConfig("clients.$name", []);
-        $config = array_merge($config, $this->getConfig("defaults", []));
+        $config = array_merge($config, $this->getConfig('defaults', []));
 
         if (empty($config)) {
             throw new InvalidArgumentException("Client [{$name}] not configured.");
@@ -93,6 +96,7 @@ class Manager extends IlluminateManager
     /**
      * @param  string  $driver
      * @return Client
+     *
      * @throws BindingResolutionException
      */
     protected function createDriver($driver): Client

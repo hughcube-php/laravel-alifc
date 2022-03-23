@@ -1,6 +1,6 @@
 <?php
 
-if (!function_exists('alifc_storage_path')) {
+if (! function_exists('alifc_storage_path')) {
 
     /**
      * Get the path to the storage folder.
