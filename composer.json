@@ -27,14 +27,14 @@
         "orchestra/testbench": "*"
     },
     "autoload": {
+        "files": [
+            "src/helpers.php"
+        ],
         "psr-4": {
             "HughCube\\Laravel\\AliFC\\": "src/"
         }
     },
     "autoload-dev": {
-        "files": [
-            "src/helpers.php"
-        ],
         "psr-4": {
             "HughCube\\Laravel\\AliFC\\Tests\\": "tests"
         }
