@@ -18,8 +18,6 @@ use Psr\Http\Message\ResponseInterface as Response;
  * @method static Response invoke(string $service, string $function, ?string $qualifier = null, ?string $payload = null, array $options = [])
  * @method static Response request(string $method, string $path, array $options = [])
  *
- * @method static string storagePath(string $path = '')
- *
  * @see \HughCube\Laravel\AliFC\Client
  * @see \HughCube\Laravel\AliFC\Manager
  */
