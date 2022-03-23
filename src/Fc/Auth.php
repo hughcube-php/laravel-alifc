@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: hugh.li
  * Date: 2021/9/22
- * Time: 10:04
+ * Time: 10:04.
  */
 
 namespace HughCube\Laravel\AliFC\Fc;
@@ -97,9 +97,9 @@ class Auth
     public function getEndpoint(): string
     {
         $endpoint = $this->isInternal() ? '%s.%s-internal.fc.aliyuncs.com' : '%s.%s.fc.aliyuncs.com';
+
         return sprintf($endpoint, $this->getAccountId(), $this->getRegionId());
     }
-
 
     /**
      * @param  array  $config
@@ -108,6 +108,7 @@ class Auth
     public function with(array $config): Auth
     {
         $class = static::class;
+
         return new $class(array_merge($this->config, $config));
     }
 
@@ -133,7 +134,7 @@ class Auth
         $handler->push($this->signHandler());
 
         return new HttpClient(array_merge([
-            'base_uri' => sprintf("%s://%s", $this->getScheme(), $this->getEndpoint())
+            'base_uri' => sprintf('%s://%s', $this->getScheme(), $this->getEndpoint()),
         ], $config));
     }
 
@@ -146,24 +147,23 @@ class Auth
     {
         return function (callable $handler) {
             return function (RequestInterface $request, array $options) use ($handler) {
-
-                if (!$request->hasHeader('Host')) {
+                if (! $request->hasHeader('Host')) {
                     $request = $request->withHeader('Host', $request->getUri()->getHost());
                 }
 
-                if (!empty($resolve = $this->getHostResolve($request->getHeaderLine('Host')))) {
+                if (! empty($resolve = $this->getHostResolve($request->getHeaderLine('Host')))) {
                     $request = $request->withUri($request->getUri()->withHost($resolve), true);
                 }
 
-                if (!$request->hasHeader('Date')) {
+                if (! $request->hasHeader('Date')) {
                     $request = $request->withHeader('Date', gmdate('D, d M Y H:i:s T'));
                 }
 
-                if (!$request->hasHeader('Content-Type')) {
+                if (! $request->hasHeader('Content-Type')) {
                     $request = $request->withHeader('Content-Type', 'application/json');
                 }
 
-                if (!$request->hasHeader('Content-Length')) {
+                if (! $request->hasHeader('Content-Length')) {
                     $request = $request->withHeader('Content-Length', 0);
                 }
 
@@ -172,7 +172,7 @@ class Auth
                     $request->getHeaderLine('Content-md5'),
                     $request->getHeaderLine('Content-type'),
                     $request->getHeaderLine('Date'),
-                    $this->implodeFcHeaders($request).$this->implodeFcResource($request)
+                    $this->implodeFcHeaders($request).$this->implodeFcResource($request),
                 ]);
 
                 $hash = hash_hmac('sha256', $data, $this->getAccessKeySecret(), true);
@@ -200,7 +200,7 @@ class Auth
         $canonicalHeaders = [];
         foreach ($request->getHeaders() as $name => $values) {
             $lowerName = strtolower($name);
-            if (!Str::startsWith($lowerName, 'x-fc-')) {
+            if (! Str::startsWith($lowerName, 'x-fc-')) {
                 continue;
             }
 
@@ -214,6 +214,7 @@ class Auth
         foreach ($canonicalHeaders as $name => $value) {
             $canonical = $canonical.$name.':'.$value."\n";
         }
+
         return $canonical;
     }
 
@@ -224,7 +225,7 @@ class Auth
     private function implodeFcResource(RequestInterface $request): string
     {
         $queryArray = [];
-        if (!empty($query = $request->getUri()->getQuery())) {
+        if (! empty($query = $request->getUri()->getQuery())) {
             parse_str($query, $queryArray);
         }
         ksort($queryArray);
@@ -237,7 +238,7 @@ class Auth
         }
 
         $resource = Util::unescape($request->getUri()->getPath());
-        if (!empty($params)) {
+        if (! empty($params)) {
             $resource .= ("\n".implode("\n", $params));
         } elseif ($request->getHeaderLine('Host') !== $this->getEndpoint()) {
             $resource .= "\n";

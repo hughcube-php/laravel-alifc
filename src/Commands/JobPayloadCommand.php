@@ -4,7 +4,7 @@
  * Created by PhpStorm.
  * User: hugh.li
  * Date: 2021/2/22
- * Time: 11:18
+ * Time: 11:18.
  */
 
 namespace HughCube\Laravel\AliFC\Commands;
@@ -14,8 +14,8 @@ use HughCube\Laravel\AliFC\Manager;
 use HughCube\Laravel\AliFC\Queue\Queue;
 use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
-use ReflectionClass;
 use function json_decode;
+use ReflectionClass;
 
 class JobPayloadCommand extends Command
 {
@@ -34,6 +34,7 @@ class JobPayloadCommand extends Command
     /**
      * @param  Schedule  $schedule
      * @return void
+     *
      * @throws Exception
      */
     public function handle(Schedule $schedule)
@@ -51,6 +52,7 @@ class JobPayloadCommand extends Command
 
     /**
      * @return object
+     *
      * @throws Exception
      */
     protected function makeJob(): object
@@ -65,6 +67,7 @@ class JobPayloadCommand extends Command
 
     /**
      * @return array|null
+     *
      * @throws Exception
      */
     protected function getData(): ?array

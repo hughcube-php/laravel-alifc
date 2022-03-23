@@ -4,7 +4,7 @@
  * Created by PhpStorm.
  * User: hugh.li
  * Date: 2021/10/26
- * Time: 10:13
+ * Time: 10:13.
  */
 
 namespace HughCube\Laravel\AliFC\Queue;

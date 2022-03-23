@@ -4,7 +4,7 @@
  * Created by PhpStorm.
  * User: hugh.li
  * Date: 2021/10/26
- * Time: 10:13
+ * Time: 10:13.
  */
 
 namespace HughCube\Laravel\AliFC\Queue;
@@ -17,12 +17,14 @@ class Connector implements ConnectorInterface
 {
     /**
      * fc connections.
+     *
      * @var Fc
      */
     protected $fc;
 
     /**
      * Create a new connector instance.
+     *
      * @param  Fc  $fc
      */
     public function __construct(Fc $fc)
@@ -32,6 +34,7 @@ class Connector implements ConnectorInterface
 
     /**
      * Establish a queue connection.
+     *
      * @param  array  $config
      * @return QueueContract
      */

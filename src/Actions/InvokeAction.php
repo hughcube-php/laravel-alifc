@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: hugh.li
  * Date: 2021/4/15
- * Time: 8:42 下午
+ * Time: 8:42 下午.
  */
 
 namespace HughCube\Laravel\AliFC\Actions;
@@ -21,11 +21,12 @@ class InvokeAction extends Controller
 {
     /**
      * @return Response
+     *
      * @throws BindingResolutionException
      */
     public function action(): Response
     {
-        if (!$this->isAllow()) {
+        if (! $this->isAllow()) {
             throw new AccessDeniedHttpException();
         }
 
@@ -35,11 +36,13 @@ class InvokeAction extends Controller
         try {
             $job = $this->parseJob($content);
             $job->fire();
+
             return $this->asJson(['job' => $job->getJobId()]);
         } catch (Throwable $exception) {
             $this->getQueueFailer()->log('alifc', 'default', $content, $exception);
             app(ExceptionHandler::class)->report($exception);
             $jobId = is_object($job) && method_exists($job, 'getJobId') ? $job->getJobId() : null;
+
             return $this->asJson(['job' => $jobId, 'message' => $exception->getMessage()], 500);
         }
     }
@@ -56,6 +59,7 @@ class InvokeAction extends Controller
 
     /**
      * @return FailedJobProviderInterface
+     *
      * @throws BindingResolutionException
      */
     protected function getQueueFailer(): FailedJobProviderInterface
