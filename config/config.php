@@ -27,5 +27,5 @@ return [
         //'pre_stop' => \HughCube\Laravel\Octane\Actions\WaitTaskCompleteAction::class,
     ],
 
-    'storagePath' => null,
+    'storagePath' => env('FC_STORAGE_PATH'),
 ];
