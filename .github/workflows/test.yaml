@@ -37,5 +37,4 @@ jobs:
 
       - name: Run PHPUnit
         run: |
-          composer config allow-plugins true
-          composer run test-exclude-auth
+          composer run test-exclude-auth --no-interaction
