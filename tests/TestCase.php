@@ -13,6 +13,9 @@ use Illuminate\Auth\Passwords\PasswordResetServiceProvider;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Cache;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
 
 class TestCase extends OrchestraTestCase
 {
@@ -46,6 +49,61 @@ class TestCase extends OrchestraTestCase
         parent::getEnvironmentSetUp($app);
 
         $app['config']->set('alifc', (require dirname(__DIR__).'/config/config.php'));
+    }
+
+    /**
+     * @param  object|string  $object  $object
+     * @param  string  $method
+     * @param  array  $args
+     *
+     * @return mixed
+     * @throws ReflectionException
+     *
+     */
+    protected static function callMethod($object, string $method, array $args = [])
+    {
+        $class = new ReflectionClass($object);
+
+        /** @var ReflectionMethod $method */
+        $method = $class->getMethod($method);
+        $method->setAccessible(true);
+
+        return $method->invokeArgs((is_object($object) ? $object : null), $args);
+    }
+
+    /**
+     * @param  object  $object  $object
+     * @param  string  $name
+     *
+     * @return mixed
+     * @throws ReflectionException
+     *
+     */
+    protected static function getProperty(object $object, string $name)
+    {
+        $class = new ReflectionClass($object);
+
+        $property = $class->getProperty($name);
+        $property->setAccessible(true);
+
+        return $property->getValue($object);
+    }
+
+    /**
+     * @param  object  $object
+     * @param  string  $name
+     * @param  mixed  $value
+     *
+     * @throws ReflectionException
+     */
+    protected static function setProperty(object $object, string $name, $value)
+    {
+        $class = new ReflectionClass($object);
+
+        $property = $class->getProperty($name);
+        $property->setAccessible(true);
+
+        $property->setValue($object, $value);
     }
 
     protected function getCache(): Repository

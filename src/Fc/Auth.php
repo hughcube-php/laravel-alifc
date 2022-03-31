@@ -17,7 +17,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Psr\Http\Message\RequestInterface;
 
-class Auth
+abstract class Auth
 {
     use HttpClientTrait;
 

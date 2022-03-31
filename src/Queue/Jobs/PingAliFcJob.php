@@ -40,7 +40,7 @@ class PingAliFcJob implements StaticInstanceInterface
         $this->data = $data;
     }
 
-    protected function action(): void
+    public function handle(): Response
     {
         $start = Carbon::now();
         $response = $this->getClient()->request($this->getMethod(), $this->getUrl(), [
@@ -57,6 +57,8 @@ class PingAliFcJob implements StaticInstanceInterface
             $this->getMethod(),
             $this->getUrl()
         ));
+
+        return $response;
     }
 
     protected function getRequestId($response): ?string

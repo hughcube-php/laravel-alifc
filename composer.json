@@ -49,6 +49,7 @@
     },
     "scripts": {
         "test": "phpunit --verbose --coverage-clover=coverage.clover",
+        "test-exclude-auth": "phpunit --verbose --coverage-clover=coverage.clover --exclude-group authCase",
         "phpstan": "phpstan analyse --memory-limit=-1 -vvv",
         "check-style": "phpcs -p --standard=PSR2 src/ -v",
         "fix-style": "phpcbf -p --standard=PSR2 src/ -v"

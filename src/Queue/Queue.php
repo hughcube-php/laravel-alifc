@@ -13,7 +13,6 @@ use Carbon\Carbon;
 use DateInterval;
 use DateTimeInterface;
 use Exception;
-use GuzzleHttp\Exception\GuzzleException;
 use HughCube\Laravel\AliFC\Client;
 use HughCube\Laravel\AliFC\Manager as Fc;
 use Illuminate\Contracts\Queue\ClearableQueue;
@@ -103,7 +102,7 @@ class Queue extends IlluminateQueue implements QueueContract, ClearableQueue
      * @param  string|null  $queue
      * @return mixed
      *
-     * @throws Exception|GuzzleException
+     * @throws Exception
      */
     public function push($job, $data = '', $queue = null)
     {
@@ -159,7 +158,7 @@ class Queue extends IlluminateQueue implements QueueContract, ClearableQueue
      * @param  string|null  $queue
      * @return mixed
      *
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function later($delay, $job, $data = '', $queue = null)
     {
