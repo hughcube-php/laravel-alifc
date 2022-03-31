@@ -15,12 +15,11 @@ use DateTimeInterface;
 use Exception;
 use HughCube\Laravel\AliFC\Client;
 use HughCube\Laravel\AliFC\Manager as Fc;
-use Illuminate\Contracts\Queue\ClearableQueue;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 use Illuminate\Queue\Queue as IlluminateQueue;
 use Illuminate\Support\Str;
 
-class Queue extends IlluminateQueue implements QueueContract, ClearableQueue
+class Queue extends IlluminateQueue implements QueueContract
 {
     /**
      * The fc factory implementation.
