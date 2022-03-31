@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: hugh.li
  * Date: 2022/3/31
- * Time: 21:46
+ * Time: 21:46.
  */
 
 namespace HughCube\Laravel\AliFC\Tests\Actions;
@@ -24,6 +24,7 @@ class InvokeActionTest extends TestCase
 {
     /**
      * @dataProvider dataProvider
+     *
      * @throws Throwable
      */
     public function testAction(Request $request, $cacheKey)

@@ -63,7 +63,7 @@ class PingAliFcJob implements StaticInstanceInterface
 
     protected function getRequestId($response): ?string
     {
-        if (!$response instanceof Response) {
+        if (! $response instanceof Response) {
             return null;
         }
 
@@ -136,7 +136,6 @@ class PingAliFcJob implements StaticInstanceInterface
 
     /**
      * @param  array|string|null  $channel
-     *
      * @return $this
      */
     public function setLogChannel($channel = null): PingAliFcJob
@@ -150,7 +149,6 @@ class PingAliFcJob implements StaticInstanceInterface
      * @param  mixed  $level
      * @param  string  $message
      * @param  array  $context
-     *
      * @return void
      */
     public function log($level, string $message, array $context = [])
