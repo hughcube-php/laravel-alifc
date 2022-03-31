@@ -8,7 +8,7 @@
 
 namespace HughCube\Laravel\AliFC\Tests\Queue\Jobs;
 
-use HughCube\Laravel\AliFC\Queue\Jobs\PingAliFcJob;
+use HughCube\Laravel\AliFC\Queue\Jobs\PingJob;
 use HughCube\Laravel\AliFC\Tests\TestCase;
 
 /**
@@ -18,7 +18,7 @@ class PingAliFcJobTest extends TestCase
 {
     public function testHandle()
     {
-        $job = PingAliFcJob::new(['url' => env('PING_URL')]);
+        $job = PingJob::new(['url' => env('PING_URL')]);
         $response = $job->handle();
 
         $this->assertSame(200, $response->getStatusCode());

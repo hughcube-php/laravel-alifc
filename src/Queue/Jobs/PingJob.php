@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Log\LogLevel;
 
-class PingAliFcJob implements StaticInstanceInterface
+class PingJob implements StaticInstanceInterface
 {
     use StaticInstanceTrait;
 
@@ -125,9 +125,9 @@ class PingAliFcJob implements StaticInstanceInterface
 
     /**
      * @param  string|null  $pid
-     * @return PingAliFcJob
+     * @return PingJob
      */
-    protected function setPid(string $pid = null): PingAliFcJob
+    protected function setPid(string $pid = null): PingJob
     {
         $this->pid = $pid;
 
@@ -138,11 +138,19 @@ class PingAliFcJob implements StaticInstanceInterface
      * @param  array|string|null  $channel
      * @return $this
      */
-    public function setLogChannel($channel = null): PingAliFcJob
+    public function setLogChannel($channel = null): PingJob
     {
         $this->logChannel = $channel;
 
         return $this;
+    }
+
+    /**
+     * @return array|string|null
+     */
+    public function getLogChannel()
+    {
+        return $this->logChannel;
     }
 
     /**
@@ -157,6 +165,6 @@ class PingAliFcJob implements StaticInstanceInterface
         $this->pid = $this->pid ?: base_convert(abs(crc32(Str::random())), 10, 36);
 
         $message = sprintf('[%s-%s] %s', $name, $this->pid, $message);
-        Log::channel($this->logChannel)->log($level, $message, $context);
+        Log::channel($this->getLogChannel())->log($level, $message, $context);
     }
 }
