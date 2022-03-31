@@ -5,4 +5,4 @@ parameters:
         - src
     inferPrivatePropertyTypeFromConstructor: true
     ignoreErrors:
-        - '#.* on an unknown class HughCube\\Laravel\\Knight\\Http\\Middleware\\HttpsGuard#'
+

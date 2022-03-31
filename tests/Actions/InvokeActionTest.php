@@ -54,6 +54,7 @@ class InvokeActionTest extends TestCase
             $queue = $this->getQueue();
             $reflection = new ReflectionClass(get_class($this->getQueue()));
             $method = $reflection->getMethod('createPayload');
+            $method->setAccessible(true);
             $payload = $method->invokeArgs($queue, [$job, $queue]);
 
             $request = Request::create(
