@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: hugh.li
  * Date: 2022/3/31
- * Time: 23:04
+ * Time: 23:04.
  */
 
 namespace HughCube\Laravel\AliFC\Tests\Queue;
