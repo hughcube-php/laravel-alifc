@@ -55,8 +55,5 @@
         "fix-style": "phpcbf -p --standard=PSR2 src/ -v"
     },
     "minimum-stability": "dev",
-    "prefer-stable": true,
-    "config": {
-        "allow-plugins": true
-    }
+    "prefer-stable": true
 }
