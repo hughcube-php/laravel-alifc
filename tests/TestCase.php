@@ -55,10 +55,9 @@ class TestCase extends OrchestraTestCase
      * @param  object|string  $object  $object
      * @param  string  $method
      * @param  array  $args
-     *
      * @return mixed
-     * @throws ReflectionException
      *
+     * @throws ReflectionException
      */
     protected static function callMethod($object, string $method, array $args = [])
     {
@@ -74,10 +73,9 @@ class TestCase extends OrchestraTestCase
     /**
      * @param  object  $object  $object
      * @param  string  $name
-     *
      * @return mixed
-     * @throws ReflectionException
      *
+     * @throws ReflectionException
      */
     protected static function getProperty(object $object, string $name)
     {

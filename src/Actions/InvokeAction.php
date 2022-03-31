@@ -21,11 +21,12 @@ class InvokeAction
 {
     /**
      * @return JsonResponse
+     *
      * @throws Throwable
      */
     public function action(): JsonResponse
     {
-        if (!$this->isAllow()) {
+        if (! $this->isAllow()) {
             throw new AccessDeniedHttpException();
         }
 
@@ -51,6 +52,7 @@ class InvokeAction
         if (false === ($value = getenv('HUGHCUBE_ALIFC_ALLOW_FIRE_JOB'))) {
             return true;
         }
+
         return true === filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }
 
@@ -89,12 +91,14 @@ class InvokeAction
     protected function getPayload(): string
     {
         $payload = $this->getRequest()->json('payload');
+
         return $payload ?: $this->getRequest()->getContent();
     }
 
     /**
      * @return Request
      * @phpstan-ignore-next-line
+     *
      * @throws
      */
     protected function getRequest(): Request
@@ -112,6 +116,7 @@ class InvokeAction
 
     /**
      * @return JsonResponse
+     *
      * @throws Throwable
      */
     public function __invoke(): JsonResponse
