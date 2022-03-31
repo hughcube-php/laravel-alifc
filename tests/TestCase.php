@@ -10,6 +10,8 @@ namespace HughCube\Laravel\AliFC\Tests;
 
 use HughCube\Laravel\AliFC\ServiceProvider;
 use Illuminate\Auth\Passwords\PasswordResetServiceProvider;
+use Illuminate\Contracts\Cache\Repository;
+use Illuminate\Support\Facades\Cache;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
 class TestCase extends OrchestraTestCase
@@ -43,6 +45,11 @@ class TestCase extends OrchestraTestCase
     {
         parent::getEnvironmentSetUp($app);
 
-        $app['config']->set('alifc', (require __DIR__.'/config/alifc.php'));
+        $app['config']->set('alifc', (require dirname(__DIR__).'/config/config.php'));
+    }
+
+    protected function getCache(): Repository
+    {
+        return Cache::store();
     }
 }

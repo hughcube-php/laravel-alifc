@@ -8,16 +8,20 @@
 
 namespace HughCube\Laravel\AliFC\Actions;
 
-use HughCube\Laravel\Knight\Routing\Controller;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Http\JsonResponse;
 
-class InitializeAction extends Controller
+class InitializeAction
 {
     /**
-     * @return Response
+     * @return JsonResponse
      */
-    public function action(): Response
+    protected function action(): JsonResponse
     {
-        return $this->asJson();
+        return new JsonResponse(['code' => 200, 'message' => 'ok']);
+    }
+
+    public function __invoke(): JsonResponse
+    {
+        return $this->action();
     }
 }

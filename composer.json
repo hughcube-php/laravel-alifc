@@ -17,7 +17,8 @@
         "php": ">=7.2|8.*",
         "ext-json": "*",
         "hughcube/guzzle-http": "*",
-        "hughcube/laravel-knight": "^3.0"
+        "hughcube/purl": "*",
+        "hughcube/static-instance": "*"
     },
     "require-dev": {
         "laravel/framework": "*",

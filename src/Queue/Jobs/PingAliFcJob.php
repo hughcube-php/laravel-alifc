@@ -2,38 +2,161 @@
 
 namespace HughCube\Laravel\AliFC\Queue\Jobs;
 
-use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\RequestOptions;
 use HughCube\Laravel\AliFC\AliFC;
 use HughCube\Laravel\AliFC\Client;
-use HughCube\Laravel\Knight\Queue\Jobs\PingJob;
+use HughCube\PUrl\Url as PUrl;
+use HughCube\StaticInstanceInterface;
+use HughCube\StaticInstanceTrait;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Log\LogLevel;
 
-class PingAliFcJob extends PingJob
+class PingAliFcJob implements StaticInstanceInterface
 {
-    public function rules(): array
+    use StaticInstanceTrait;
+
+    /**
+     * @var array|string|null
+     */
+    protected $logChannel = null;
+
+    /**
+     * @var string|int|null
+     */
+    protected $pid = null;
+
+    /**
+     * @var array
+     */
+    protected $data = [];
+
+    public function __construct(array $data = [])
     {
+        $this->data = $data;
+    }
+
+    protected function action(): void
+    {
+        $start = Carbon::now();
+        $response = $this->getClient()->request($this->getMethod(), $this->getUrl(), [
+            RequestOptions::TIMEOUT => $this->getTimeout(),
+            RequestOptions::ALLOW_REDIRECTS => $this->getAllowRedirects(),
+        ]);
+        $end = Carbon::now();
+
+        $this->log(LogLevel::INFO, sprintf(
+            '%sms [%s] [%s] %s %s',
+            round(($end->getPreciseTimestamp() - $start->getPreciseTimestamp()) * 1000, 2),
+            $this->getRequestId($response),
+            $response->getStatusCode(),
+            $this->getMethod(),
+            $this->getUrl()
+        ));
+    }
+
+    protected function getRequestId($response): ?string
+    {
+        if (!$response instanceof Response) {
+            return null;
+        }
+
+        foreach ($response->getHeaders() as $name => $header) {
+            if (Str::endsWith(strtolower($name), 'request-id')) {
+                return $response->getHeaderLine($name);
+            }
+        }
+
+        return null;
+    }
+
+    protected function getClient(): Client
+    {
+        return AliFC::client($this->data['client'] ?? null);
+    }
+
+    protected function getUrl(): string
+    {
+        $url = $this->data['url'] ?? 'alifc_ping';
+        if (is_string($url) && PUrl::isUrlString($url)) {
+            return $url;
+        }
+
+        $appUrl = PUrl::parse(config('app.url'));
+        $purl = PUrl::parse((Route::has($url) ? route($url) : URL::to($url)));
+        if ($appUrl instanceof PUrl && $purl instanceof PUrl) {
+            $purl = $purl->withScheme($appUrl->getScheme());
+        }
+
+        return $purl instanceof PUrl ? $purl->toString() : $url;
+    }
+
+    protected function getMethod()
+    {
+        return $this->data['method'] ?? 'GET';
+    }
+
+    protected function getTimeout()
+    {
+        return $this->data['timeout'] ?? 30;
+    }
+
+    protected function getAllowRedirects()
+    {
+        $redirects = $this->data['allow_redirects'] ?? 0;
+
+        if (0 >= $redirects) {
+            return false;
+        }
+
         return [
-            'client' => ['nullable'],
-            'url' => ['string', 'nullable', 'default:alifc_ping'],
-            'method' => ['string', 'default:GET'],
-            'timeout' => ['integer', 'default:2'],
-            'allow_redirects' => ['integer', 'default:0'],
+            'max' => $redirects,
+            'strict' => true,
+            'referer' => true,
+            'protocols' => ['https', 'http'],
         ];
     }
 
     /**
-     * @throws GuzzleException
+     * @param  string|null  $pid
+     * @return PingAliFcJob
      */
-    protected function request(string $method, $uri = '', array $options = []): Response
+    protected function setPid(string $pid = null): PingAliFcJob
     {
-        return $this->getAliFcClient()->request($method, $uri, $options);
+        $this->pid = $pid;
+
+        return $this;
     }
 
     /**
-     * @return Client
+     * @param  array|string|null  $channel
+     *
+     * @return $this
      */
-    protected function getAliFcClient(): Client
+    public function setLogChannel($channel = null): PingAliFcJob
     {
-        return AliFC::client(($this->p()->get('client') ?: null));
+        $this->logChannel = $channel;
+
+        return $this;
+    }
+
+    /**
+     * @param  mixed  $level
+     * @param  string  $message
+     * @param  array  $context
+     *
+     * @return void
+     */
+    public function log($level, string $message, array $context = [])
+    {
+        $name = Str::afterLast(get_class($this), '\\');
+        $this->pid = $this->pid ?: base_convert(abs(crc32(Str::random())), 10, 36);
+
+        $message = sprintf('[%s-%s] %s', $name, $this->pid, $message);
+        Log::channel($this->logChannel)->log($level, $message, $context);
     }
 }

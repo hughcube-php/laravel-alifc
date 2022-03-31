@@ -46,7 +46,7 @@ class Connector implements ConnectorInterface
             $config['service'],
             $config['function'],
             ($config['qualifier'] ?? null),
-            (isset($config['after_commit']) && $config['after_commit']),
+            (isset($config['after_commit']) && $config['after_commit'])
         );
     }
 }

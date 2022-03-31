@@ -126,7 +126,6 @@ class Queue extends IlluminateQueue implements QueueContract, ClearableQueue
      * @param  array  $options
      * @return string
      *
-     * @throws GuzzleException
      * @throws Exception
      */
     public function pushRaw($payload, $queue = null, array $options = []): string

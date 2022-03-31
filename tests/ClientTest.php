@@ -13,6 +13,9 @@ use HughCube\Laravel\AliFC\Client;
 use Illuminate\Support\Arr;
 use Throwable;
 
+/**
+ * @group authCase
+ */
 class ClientTest extends TestCase
 {
     public function testInstanceOf()
