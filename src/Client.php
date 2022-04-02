@@ -11,7 +11,6 @@ namespace HughCube\Laravel\AliFC;
 use GuzzleHttp\RequestOptions;
 use HughCube\GuzzleHttp\LazyResponse;
 use HughCube\Laravel\AliFC\Fc\Auth;
-use Psr\Http\Message\ResponseInterface;
 
 class Client extends Auth
 {
