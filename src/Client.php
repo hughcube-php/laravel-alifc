@@ -9,12 +9,13 @@
 namespace HughCube\Laravel\AliFC;
 
 use GuzzleHttp\RequestOptions;
+use HughCube\GuzzleHttp\LazyResponse;
 use HughCube\Laravel\AliFC\Fc\Auth;
 use Psr\Http\Message\ResponseInterface;
 
 class Client extends Auth
 {
-    public function request(string $method, $uri, array $options = []): ResponseInterface
+    public function request(string $method, $uri, array $options = []): LazyResponse
     {
         return $this->getHttpClient()->requestLazy(strtoupper($method), $uri, $options);
     }
@@ -25,7 +26,7 @@ class Client extends Auth
      * @param  string|null  $qualifier
      * @param  string|null  $payload
      * @param  array  $options
-     * @return ResponseInterface
+     * @return LazyResponse
      */
     public function invoke(
         string $service,
@@ -33,7 +34,7 @@ class Client extends Auth
         ?string $qualifier = null,
         ?string $payload = null,
         array $options = []
-    ): ResponseInterface {
+    ): LazyResponse {
         $service = empty($qualifier) ? $service : "$service.$qualifier";
         $path = sprintf('/%s/services/%s/functions/%s/invocations', $this->getApiVersion(), $service, $function);
 
@@ -52,11 +53,11 @@ class Client extends Auth
      * @param  string  $name
      * @param  string  $description
      * @param  array  $options
-     * @return ResponseInterface
+     * @return LazyResponse
      *
      * @see https://help.aliyun.com/document_detail/175256.html
      */
-    public function createService(string $name, string $description = '', array $options = []): ResponseInterface
+    public function createService(string $name, string $description = '', array $options = []): LazyResponse
     {
         $path = sprintf('/%s/services', $this->getApiVersion());
         $options[RequestOptions::JSON]['serviceName'] = $name;
@@ -69,11 +70,11 @@ class Client extends Auth
      * @param  string  $name
      * @param  string|null  $qualifier
      * @param  array  $options
-     * @return ResponseInterface
+     * @return LazyResponse
      *
      * @see https://help.aliyun.com/document_detail/189225.html
      */
-    public function getService(string $name, ?string $qualifier = null, array $options = []): ResponseInterface
+    public function getService(string $name, ?string $qualifier = null, array $options = []): LazyResponse
     {
         $name = empty($qualifier) ? $name : "$name.$qualifier";
         $path = sprintf('/%s/services/%s', $this->getApiVersion(), $name);
@@ -87,7 +88,7 @@ class Client extends Auth
         ?array $route = null,
         string $protocol = null,
         array $options = []
-    ): ResponseInterface {
+    ): LazyResponse {
         $path = sprintf('/%s/custom-domains/%s', $this->getApiVersion(), $domain);
 
         $options[RequestOptions::JSON]['domainName'] = $domain;
@@ -107,7 +108,7 @@ class Client extends Auth
         return $this->request('PUT', $path, $options);
     }
 
-    public function getCustomDomain(string $domain, array $options = []): ResponseInterface
+    public function getCustomDomain(string $domain, array $options = []): LazyResponse
     {
         $path = sprintf('/%s/custom-domains/%s', $this->getApiVersion(), $domain);
 
