@@ -68,12 +68,12 @@ class InvokeAction
 
     protected function getConnection(): ?string
     {
-        return null;
+        return 'alifc';
     }
 
     protected function getQueue(): ?string
     {
-        return null;
+        return 'default';
     }
 
     /**
