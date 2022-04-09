@@ -48,6 +48,9 @@ class PingAliFcJob implements StaticInstanceInterface, ShouldQueue
             RequestOptions::TIMEOUT => $this->getTimeout(),
             RequestOptions::ALLOW_REDIRECTS => $this->getAllowRedirects(),
         ]);
+
+        /** wait */
+        $response->getStatusCode();
         $end = Carbon::now();
 
         $this->log(LogLevel::INFO, sprintf(
