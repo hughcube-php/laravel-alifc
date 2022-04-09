@@ -126,9 +126,9 @@ class PingAliFcJob implements StaticInstanceInterface, ShouldQueue
 
     /**
      * @param  string|null  $pid
-     * @return PingJob
+     * @return $this
      */
-    protected function setPid(string $pid = null): PingJob
+    protected function setPid(string $pid = null): PingAliFcJob
     {
         $this->pid = $pid;
 
@@ -139,7 +139,7 @@ class PingAliFcJob implements StaticInstanceInterface, ShouldQueue
      * @param  array|string|null  $channel
      * @return $this
      */
-    public function setLogChannel($channel = null): PingJob
+    public function setLogChannel($channel = null): PingAliFcJob
     {
         $this->logChannel = $channel;
 
