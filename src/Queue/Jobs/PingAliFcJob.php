@@ -52,7 +52,7 @@ class PingAliFcJob implements StaticInstanceInterface, ShouldQueue
 
         $this->log(LogLevel::INFO, sprintf(
             '%sms [%s] [%s] %s %s',
-            round(($end->getPreciseTimestamp() - $start->getPreciseTimestamp()) * 1000, 2),
+            round(($end->getPreciseTimestamp() - $start->getPreciseTimestamp()) / 1000, 2),
             $this->getRequestId($response),
             $response->getStatusCode(),
             $this->getMethod(),
