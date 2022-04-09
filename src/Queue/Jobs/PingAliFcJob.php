@@ -8,6 +8,7 @@ use HughCube\Laravel\AliFC\Client;
 use HughCube\PUrl\Url as PUrl;
 use HughCube\StaticInstanceInterface;
 use HughCube\StaticInstanceTrait;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
@@ -16,7 +17,7 @@ use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Log\LogLevel;
 
-class PingAliFcJob implements StaticInstanceInterface
+class PingAliFcJob implements StaticInstanceInterface, ShouldQueue
 {
     use StaticInstanceTrait;
 
