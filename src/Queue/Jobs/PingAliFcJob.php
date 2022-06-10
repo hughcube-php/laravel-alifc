@@ -67,7 +67,7 @@ class PingAliFcJob implements StaticInstanceInterface, ShouldQueue
 
     protected function getRequestId($response): ?string
     {
-        if (!$response instanceof Response) {
+        if (! $response instanceof Response) {
             return null;
         }
 
