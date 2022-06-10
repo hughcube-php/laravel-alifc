@@ -111,7 +111,7 @@ class Queue extends IlluminateQueue implements QueueContract
             $queue,
             null,
             function ($payload, $queue) {
-                return $this->pushRaw($payload, $queue);
+                return $this->invokeFc($payload);
             }
         );
     }
@@ -128,24 +128,7 @@ class Queue extends IlluminateQueue implements QueueContract
      */
     public function pushRaw($payload, $queue = null, array $options = []): string
     {
-        $response = $this->getClient()->invoke(
-            $this->service,
-            $this->function,
-            $this->qualifier,
-            $payload,
-            ['type' => 'Async']
-        );
-
-        $requestId = $response->getHeaderLine('X-Fc-Request-Id');
-        if (empty($requestId)) {
-            throw new Exception('The function failed to calculate the service response.');
-        }
-
-        if (300 > $response->getStatusCode() && 200 <= $response->getStatusCode()) {
-            return $requestId;
-        }
-
-        throw new Exception(sprintf('The function calculation call failed, RequestId:%s', $requestId));
+        return $this->invokeFc($payload);
     }
 
     /**
@@ -161,7 +144,43 @@ class Queue extends IlluminateQueue implements QueueContract
      */
     public function later($delay, $job, $data = '', $queue = null)
     {
-        return $this->push($job, $data, $queue);
+        return $this->enqueueUsing(
+            $job,
+            $this->createPayload($job, $queue, $data),
+            $queue,
+            $delay,
+            function ($payload, $queue, $delay) {
+                return $this->invokeFc($payload, $delay);
+            }
+        );
+    }
+
+    /**
+     * @param  string  $payload
+     * @param  DateTimeInterface|DateInterval|int  $delay
+     * @return mixed|string
+     * @throws Exception
+     */
+    protected function invokeFc(string $payload, $delay = 0)
+    {
+        $response = $this->getClient()->invoke(
+            $this->service,
+            $this->function,
+            $this->qualifier,
+            $payload,
+            ['type' => 'Async', 'delay' => $delay]
+        );
+
+        $requestId = $response->getHeaderLine('X-Fc-Request-Id');
+        if (empty($requestId)) {
+            throw new Exception('The function failed to calculate the service response.');
+        }
+
+        if (300 > $response->getStatusCode() && 200 <= $response->getStatusCode()) {
+            return $requestId;
+        }
+
+        throw new Exception(sprintf('The function calculation call failed, RequestId:%s', $requestId));
     }
 
     /**

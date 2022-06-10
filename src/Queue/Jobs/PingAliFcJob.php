@@ -67,7 +67,7 @@ class PingAliFcJob implements StaticInstanceInterface, ShouldQueue
 
     protected function getRequestId($response): ?string
     {
-        if (! $response instanceof Response) {
+        if (!$response instanceof Response) {
             return null;
         }
 
@@ -113,9 +113,7 @@ class PingAliFcJob implements StaticInstanceInterface, ShouldQueue
 
     protected function getAllowRedirects()
     {
-        $redirects = $this->data['allow_redirects'] ?? 0;
-
-        if (0 >= $redirects) {
+        if (0 >= ($redirects = $this->data['allow_redirects'] ?? 0)) {
             return false;
         }
 
