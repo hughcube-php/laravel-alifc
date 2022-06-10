@@ -168,7 +168,7 @@ class Queue extends IlluminateQueue implements QueueContract
             $this->function,
             $this->qualifier,
             $payload,
-            ['type' => 'Async', 'delay' => $delay]
+            ['type' => 'Async', 'delay' => $this->parseDelay($delay)]
         );
 
         $requestId = $response->getHeaderLine('X-Fc-Request-Id');
@@ -228,6 +228,24 @@ class Queue extends IlluminateQueue implements QueueContract
         return array_merge(parent::createPayloadArray($job, $queue, $data), [
             'createdAt' => Carbon::now()->toISOString(true),
         ]);
+    }
+
+    /**
+     * @param  DateTimeInterface|DateInterval|int  $delay
+     * @return int
+     * @throws Exception
+     */
+    protected function parseDelay($delay): int
+    {
+        if ($delay instanceof DateTimeInterface) {
+            return $delay->getTimestamp() - time();
+        }
+
+        if ($delay instanceof DateInterval) {
+            return $delay->s;
+        }
+
+        return $delay;
     }
 
     /**
