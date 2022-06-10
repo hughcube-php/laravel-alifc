@@ -40,9 +40,12 @@ class Client extends Auth
         $options[RequestOptions::BODY] = $payload;
         $options[RequestOptions::HEADERS]['X-Fc-Invocation-Type'] = $options['type'] ?? 'Sync';
         $options[RequestOptions::HEADERS]['X-Fc-Log-Type'] = $options['log'] ?? 'None';
-        $options[RequestOptions::HEADERS]['X-Fc-Async-Delay'] = $options['delay'] ?? 0;
 
-        if (empty($invokeId = $options['id'] ?? null)) {
+        if (($delay = $options['delay'] ?? 0) > 0) {
+            $options[RequestOptions::HEADERS]['X-Fc-Async-Delay'] = $delay;
+        }
+
+        if (!empty($invokeId = $options['id'] ?? null)) {
             $options[RequestOptions::HEADERS]['X-Fc-Stateful-Async-Invocation-Id'] = $invokeId;
         }
 
