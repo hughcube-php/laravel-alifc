@@ -159,6 +159,7 @@ class Queue extends IlluminateQueue implements QueueContract
      * @param  string  $payload
      * @param  DateTimeInterface|DateInterval|int  $delay
      * @return mixed|string
+     *
      * @throws Exception
      */
     protected function invokeFc(string $payload, $delay = 0)
@@ -233,6 +234,7 @@ class Queue extends IlluminateQueue implements QueueContract
     /**
      * @param  DateTimeInterface|DateInterval|int  $delay
      * @return int
+     *
      * @throws Exception
      */
     protected function parseDelay($delay): int

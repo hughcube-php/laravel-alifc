@@ -45,7 +45,7 @@ class Client extends Auth
             $options[RequestOptions::HEADERS]['X-Fc-Async-Delay'] = $delay;
         }
 
-        if (!empty($invokeId = $options['id'] ?? null)) {
+        if (! empty($invokeId = $options['id'] ?? null)) {
             $options[RequestOptions::HEADERS]['X-Fc-Stateful-Async-Invocation-Id'] = $invokeId;
         }
 
@@ -96,15 +96,15 @@ class Client extends Auth
 
         $options[RequestOptions::JSON]['domainName'] = $domain;
 
-        if (!empty($cert)) {
+        if (! empty($cert)) {
             $options[RequestOptions::JSON]['certConfig'] = $cert;
         }
 
-        if (!empty($route)) {
+        if (! empty($route)) {
             $options[RequestOptions::JSON]['routeConfig'] = $route;
         }
 
-        if (!empty($protocol)) {
+        if (! empty($protocol)) {
             $options[RequestOptions::JSON]['protocol'] = $protocol;
         }
 
