@@ -32,7 +32,7 @@ class InvokeAction
      */
     public function action(): JsonResponse
     {
-        if (!$this->isAllow()) {
+        if (! $this->isAllow()) {
             throw new AccessDeniedHttpException();
         }
 
@@ -112,6 +112,7 @@ class InvokeAction
      * Listen for the queue events in order to update the console output.
      *
      * @return void
+     *
      * @throws BindingResolutionException
      */
     protected function listenForEvents()
