@@ -10,10 +10,10 @@ namespace HughCube\Laravel\AliFC\Actions;
 
 use HughCube\Laravel\AliFC\Queue\Job;
 use Illuminate\Container\Container as IlluminateContainer;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Queue\Failed\FailedJobProviderInterface;
+use Illuminate\Queue\Worker;
+use Illuminate\Queue\WorkerOptions;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Throwable;
 
@@ -26,24 +26,22 @@ class InvokeAction
      */
     public function action(): JsonResponse
     {
-        if (! $this->isAllow()) {
+        if (!$this->isAllow()) {
             throw new AccessDeniedHttpException();
         }
 
-        try {
-            $job = $this->parseJob($this->getPayload());
-            $job->fire();
-        } catch (Throwable $exception) {
-            $this->getQueueFailer()->log(
-                $this->getConnection(),
-                $this->getQueue(),
-                $this->getRequest()->getContent(),
-                $exception
-            );
-            throw $exception;
-        }
+        $job = $this->parseJob($this->getPayload());
 
-        return new JsonResponse(['code' => 200, 'message' => 'ok', 'data' => ['job' => $job->getJobId()]]);
+        /** @var Worker $worker */
+        $worker = $this->getContainer()->make('queue.worker');
+
+        $worker->process(null, $job, new WorkerOptions());
+
+        return new JsonResponse([
+            'code' => 200,
+            'message' => 'ok',
+            'data' => ['job' => $job->getJobId()]
+        ]);
     }
 
     protected function isAllow(): bool
@@ -54,26 +52,6 @@ class InvokeAction
         }
 
         return true === filter_var($value, FILTER_VALIDATE_BOOLEAN);
-    }
-
-    /**
-     * @return FailedJobProviderInterface
-     *
-     * @throws BindingResolutionException
-     */
-    protected function getQueueFailer(): FailedJobProviderInterface
-    {
-        return $this->getContainer()->make('queue.failer');
-    }
-
-    protected function getConnection(): ?string
-    {
-        return 'alifc';
-    }
-
-    protected function getQueue(): ?string
-    {
-        return 'default';
     }
 
     /**
