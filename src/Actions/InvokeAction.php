@@ -8,10 +8,14 @@
 
 namespace HughCube\Laravel\AliFC\Actions;
 
+use HughCube\Laravel\AliFC\Listeners\LogFailedJob;
 use HughCube\Laravel\AliFC\Queue\Job;
 use Illuminate\Container\Container as IlluminateContainer;
+use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Events\Dispatcher as EventsDispatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Worker;
 use Illuminate\Queue\WorkerOptions;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -19,6 +23,8 @@ use Throwable;
 
 class InvokeAction
 {
+    protected static $hasListenEvents;
+
     /**
      * @return JsonResponse
      *
@@ -26,9 +32,11 @@ class InvokeAction
      */
     public function action(): JsonResponse
     {
-        if (! $this->isAllow()) {
+        if (!$this->isAllow()) {
             throw new AccessDeniedHttpException();
         }
+
+        $this->listenForEvents();
 
         $job = $this->parseJob($this->getPayload());
 
@@ -85,11 +93,35 @@ class InvokeAction
     }
 
     /**
+     * @throws BindingResolutionException
+     */
+    protected function getEvents(): EventsDispatcher
+    {
+        return $this->getContainer()->make('events');
+    }
+
+    /**
      * @return IlluminateContainer
      */
     protected function getContainer(): IlluminateContainer
     {
         return IlluminateContainer::getInstance();
+    }
+
+    /**
+     * Listen for the queue events in order to update the console output.
+     *
+     * @return void
+     * @throws BindingResolutionException
+     */
+    protected function listenForEvents()
+    {
+        if (static::$hasListenEvents) {
+            return;
+        }
+
+        static::$hasListenEvents = true;
+        $this->getEvents()->listen(JobFailed::class, LogFailedJob::class);
     }
 
     /**
