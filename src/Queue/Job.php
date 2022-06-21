@@ -33,13 +33,15 @@ class Job extends \Illuminate\Queue\Jobs\Job implements JobContract
      *
      * @param  Container  $container
      * @param  string  $job
-     * @param  ?string  $connectionName
+     * @param  string  $connectionName
+     * @param  string  $queue
      */
-    public function __construct(Container $container, string $job, ?string $connectionName = null)
+    public function __construct(Container $container, string $job, string $connectionName = 'alifc', string $queue = 'default')
     {
         $this->container = $container;
         $this->job = $job;
         $this->connectionName = $connectionName;
+        $this->queue = $queue;
         $this->decoded = $this->payload();
     }
 

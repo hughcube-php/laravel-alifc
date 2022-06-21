@@ -35,7 +35,7 @@ class InvokeAction
         /** @var Worker $worker */
         $worker = $this->getContainer()->make('queue.worker');
 
-        $worker->process(null, $job, new WorkerOptions());
+        $worker->process('alifc', $job, new WorkerOptions());
 
         return new JsonResponse([
             'code' => 200,
@@ -60,7 +60,7 @@ class InvokeAction
      */
     protected function parseJob(?string $payload): Job
     {
-        return new Job($this->getContainer(), $payload);
+        return new Job($this->getContainer(), $payload, 'alifc', 'default');
     }
 
     /**
