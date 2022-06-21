@@ -26,7 +26,7 @@ class InvokeAction
      */
     public function action(): JsonResponse
     {
-        if (!$this->isAllow()) {
+        if (! $this->isAllow()) {
             throw new AccessDeniedHttpException();
         }
 
@@ -40,7 +40,7 @@ class InvokeAction
         return new JsonResponse([
             'code' => 200,
             'message' => 'ok',
-            'data' => ['job' => $job->getJobId()]
+            'data' => ['job' => $job->getJobId()],
         ]);
     }
 

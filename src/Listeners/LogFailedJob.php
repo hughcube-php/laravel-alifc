@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: hugh.li
  * Date: 2022/6/21
- * Time: 18:06
+ * Time: 18:06.
  */
 
 namespace HughCube\Laravel\AliFC\Listeners;
