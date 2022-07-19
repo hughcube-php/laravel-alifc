@@ -91,7 +91,7 @@ class ServiceProvider extends IlluminateServiceProvider
 
     protected function bootHttpsGuard()
     {
-        if (!class_exists(HttpsGuard::class)) {
+        if (! class_exists(HttpsGuard::class)) {
             return;
         }
 
