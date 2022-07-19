@@ -15,7 +15,7 @@ use HughCube\Laravel\AliFC\Actions\PreStopAction;
 use HughCube\Laravel\AliFC\Commands\JobPayloadCommand;
 use HughCube\Laravel\AliFC\Queue\Connector;
 use HughCube\Laravel\Knight\Http\Middleware\HttpsGuard;
-use Illuminate\Foundation\Application as LaravelApplication;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Facades\Route;
@@ -23,30 +23,20 @@ use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Lumen\Application as LumenApplication;
 
+/**
+ * @property LumenApplication|Application $app
+ */
 class ServiceProvider extends IlluminateServiceProvider
 {
-    /**
-     * Boot the provider.
-     */
-    public function boot()
-    {
-        $this->bootPublishes();
-        $this->bootCommands();
-        $this->bootHandlers();
-        $this->bootHttpsGuard();
-    }
-
     /**
      * Register the provider.
      */
     public function register()
     {
-        $this->registerManager();
-        $this->registerQueueConnector();
-    }
+        $this->app->singleton(AliFC::getFacadeAccessor(), function ($app) {
+            return new Manager();
+        });
 
-    protected function registerQueueConnector()
-    {
         $this->app->resolving('queue', function (QueueManager $queue) {
             $queue->extend('alifc', function () {
                 return new Connector($this->app['alifc']);
@@ -54,21 +44,14 @@ class ServiceProvider extends IlluminateServiceProvider
         });
     }
 
-    protected function registerManager()
+    /**
+     * Boot the provider.
+     */
+    public function boot()
     {
-        $this->app->singleton(AliFC::getFacadeAccessor(), function ($app) {
-            return new Manager();
-        });
-    }
-
-    protected function bootPublishes()
-    {
-        $source = realpath(dirname(__DIR__).'/config/config.php');
-        if ($this->app instanceof LaravelApplication && $this->app->runningInConsole()) {
-            $this->publishes([$source => config_path(sprintf('%s.php', AliFC::getFacadeAccessor()))]);
-        } elseif ($this->app instanceof LumenApplication) {
-            $this->app->configure(AliFC::getFacadeAccessor());
-        }
+        $this->bootCommands();
+        $this->bootHandlers();
+        $this->bootHttpsGuard();
     }
 
     protected function bootCommands()
@@ -85,30 +68,30 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     protected function bootHandlers()
     {
-        $handler = config('alifc.handlers.initialize', InitializeAction::class);
-        if (! app()->routesAreCached() && false !== $handler) {
+        if ($this->app->routesAreCached()) {
+            return;
+        }
+
+        if (false !== ($handler = config('alifc.handlers.initialize', InitializeAction::class))) {
             Route::any('/initialize', $handler)->name('alifc_handler_initialize');
         }
 
-        $handler = config('alifc.handlers.invoke', InvokeAction::class);
-        if (! app()->routesAreCached() && false !== $handler) {
+        if (false !== ($handler = config('alifc.handlers.invoke', InvokeAction::class))) {
             Route::any('/invoke', $handler)->name('alifc_handler_invoke');
         }
 
-        $handler = config('alifc.handlers.pre_freeze', PreFreezeAction::class);
-        if (! app()->routesAreCached() && false !== $handler) {
+        if (false !== ($handler = config('alifc.handlers.pre_freeze', PreFreezeAction::class))) {
             Route::any('/pre-freeze', $handler)->name('alifc_handler_pre_freeze');
         }
 
-        $handler = config('alifc.handlers.pre_freeze', PreStopAction::class);
-        if (! app()->routesAreCached() && false !== $handler) {
+        if (false !== ($handler = config('alifc.handlers.pre_freeze', PreStopAction::class))) {
             Route::any('/pre-stop', $handler)->name('alifc_handler_pre_stop');
         }
     }
 
     protected function bootHttpsGuard()
     {
-        if (! class_exists(HttpsGuard::class)) {
+        if (!class_exists(HttpsGuard::class)) {
             return;
         }
 
