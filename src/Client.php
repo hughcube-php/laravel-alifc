@@ -14,26 +14,37 @@ use HughCube\Laravel\AliFC\Fc\Auth;
 
 class Client extends Auth
 {
+    public function getContainerName(): ?string
+    {
+        return getenv('FC_FUNCTION_NAME') ?: null;
+    }
+
+    public function inScheduleContainer(): bool
+    {
+        return 'schedule' === $this->getContainerName();
+    }
+
     public function request(string $method, $uri, array $options = []): LazyResponse
     {
         return $this->getHttpClient()->requestLazy(strtoupper($method), $uri, $options);
     }
 
     /**
-     * @param  string  $service
-     * @param  string  $function
-     * @param  string|null  $qualifier
-     * @param  string|null  $payload
-     * @param  array  $options
+     * @param string $service
+     * @param string $function
+     * @param string|null $qualifier
+     * @param string|null $payload
+     * @param array $options
      * @return LazyResponse
      */
     public function invoke(
-        string $service,
-        string $function,
+        string  $service,
+        string  $function,
         ?string $qualifier = null,
         ?string $payload = null,
-        array $options = []
-    ): LazyResponse {
+        array   $options = []
+    ): LazyResponse
+    {
         $service = empty($qualifier) ? $service : "$service.$qualifier";
         $path = sprintf('/%s/services/%s/functions/%s/invocations', $this->getApiVersion(), $service, $function);
 
@@ -45,7 +56,7 @@ class Client extends Auth
             $options[RequestOptions::HEADERS]['X-Fc-Async-Delay'] = $delay;
         }
 
-        if (! empty($invokeId = $options['id'] ?? null)) {
+        if (!empty($invokeId = $options['id'] ?? null)) {
             $options[RequestOptions::HEADERS]['X-Fc-Stateful-Async-Invocation-Id'] = $invokeId;
         }
 
@@ -53,9 +64,9 @@ class Client extends Auth
     }
 
     /**
-     * @param  string  $name
-     * @param  string  $description
-     * @param  array  $options
+     * @param string $name
+     * @param string $description
+     * @param array $options
      * @return LazyResponse
      *
      * @see https://help.aliyun.com/document_detail/175256.html
@@ -70,9 +81,9 @@ class Client extends Auth
     }
 
     /**
-     * @param  string  $name
-     * @param  string|null  $qualifier
-     * @param  array  $options
+     * @param string $name
+     * @param string|null $qualifier
+     * @param array $options
      * @return LazyResponse
      *
      * @see https://help.aliyun.com/document_detail/189225.html
@@ -90,21 +101,22 @@ class Client extends Auth
         ?array $cert = null,
         ?array $route = null,
         string $protocol = null,
-        array $options = []
-    ): LazyResponse {
+        array  $options = []
+    ): LazyResponse
+    {
         $path = sprintf('/%s/custom-domains/%s', $this->getApiVersion(), $domain);
 
         $options[RequestOptions::JSON]['domainName'] = $domain;
 
-        if (! empty($cert)) {
+        if (!empty($cert)) {
             $options[RequestOptions::JSON]['certConfig'] = $cert;
         }
 
-        if (! empty($route)) {
+        if (!empty($route)) {
             $options[RequestOptions::JSON]['routeConfig'] = $route;
         }
 
-        if (! empty($protocol)) {
+        if (!empty($protocol)) {
             $options[RequestOptions::JSON]['protocol'] = $protocol;
         }
 

@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface as Response;
 
 /**
+ * @method static bool inScheduleContainer()
  * @method static Client client(string $name = null)
  * @method static Client makeClient(array $config)
  * @method static Response invoke($service, $function, $qualifier = null, $payload = null, $options = [])
