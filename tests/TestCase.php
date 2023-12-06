@@ -48,7 +48,7 @@ class TestCase extends OrchestraTestCase
     {
         parent::getEnvironmentSetUp($app);
 
-        $app['config']->set('alifc', (require dirname(__DIR__).'/config/config.php'));
+        $app['config']->set('alifc', require dirname(__DIR__).'/config/config.php');
     }
 
     /**
@@ -67,7 +67,7 @@ class TestCase extends OrchestraTestCase
         $method = $class->getMethod($method);
         $method->setAccessible(true);
 
-        return $method->invokeArgs((is_object($object) ? $object : null), $args);
+        return $method->invokeArgs(is_object($object) ? $object : null, $args);
     }
 
     /**

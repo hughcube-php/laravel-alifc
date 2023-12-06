@@ -21,8 +21,7 @@ class AuthTest extends TestCase
     public function testGetConfig()
     {
         $config = ['uuid' => ($uuid = Str::uuid()->toString())];
-        $auth = new class($config) extends Auth
-        {
+        $auth = new class($config) extends Auth {
         };
         $this->assertSame($uuid, $this->callMethod($auth, 'getConfig', ['uuid']));
     }
