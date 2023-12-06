@@ -93,7 +93,7 @@ class PingAliFcJob implements StaticInstanceInterface, ShouldQueue
         }
 
         $appUrl = PUrl::parse(config('app.url'));
-        $purl = PUrl::parse((Route::has($url) ? route($url) : URL::to($url)));
+        $purl = PUrl::parse(Route::has($url) ? route($url) : URL::to($url));
         if ($appUrl instanceof PUrl && $purl instanceof PUrl) {
             $purl = $purl->withScheme($appUrl->getScheme());
         }
