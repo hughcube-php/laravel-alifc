@@ -32,7 +32,7 @@ class InvokeAction
      */
     public function action(): JsonResponse
     {
-        if (! $this->isAllow()) {
+        if (!$this->isAllow()) {
             throw new AccessDeniedHttpException();
         }
 
@@ -54,12 +54,15 @@ class InvokeAction
 
     protected function isAllow(): bool
     {
-        /** Default allow if not set */
-        if (false === ($value = getenv('HUGHCUBE_ALIFC_ALLOW_FIRE_JOB'))) {
+        /** allow if set */
+        if (true === filter_var(getenv('HUGHCUBE_ALIFC_ALLOW_FIRE_JOB'), FILTER_VALIDATE_BOOLEAN)) {
             return true;
         }
 
-        return true === filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        $paths = $this->getRequest()->header('x-fc-control-path');
+        $paths = is_array($paths) ? $paths : [$paths];
+
+        return !in_array('/http-invoke', $paths, true);
     }
 
     /**
