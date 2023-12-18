@@ -40,7 +40,9 @@ class Queue extends IlluminateQueue implements QueueContract
 
     /**
      * The service name.
+     *
      * @deprecated
+     *
      * @var string
      */
     protected $service;
@@ -169,7 +171,7 @@ class Queue extends IlluminateQueue implements QueueContract
             new InvokeFunctionHeaders([
                 'xFcInvocationType' => 'Async',
                 'commonHeaders' => [
-                    'X-Fc-Async-Delay' => max($delay, 0)
+                    'X-Fc-Async-Delay' => max($delay, 0),
                 ],
             ]),
 

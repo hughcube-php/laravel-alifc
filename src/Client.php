@@ -9,7 +9,6 @@
 namespace HughCube\Laravel\AliFC;
 
 use AlibabaCloud\SDK\FC\V20230330\FC;
-use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\RequestOptions;
 use HughCube\GuzzleHttp\Client as HttpClient;
@@ -79,11 +78,11 @@ class Client
         /** 替换http请求的host头信息 */
         $handler->push(function (callable $handler) {
             return function (RequestInterface $request, array $options) use ($handler) {
-                if (!$request->hasHeader('Host') && !empty($host = $this->getConfig()->getHost())) {
+                if (! $request->hasHeader('Host') && ! empty($host = $this->getConfig()->getHost())) {
                     $request = $request->withHeader('Host', $host);
                 }
 
-                if (!$request->hasHeader('Host')) {
+                if (! $request->hasHeader('Host')) {
                     $request = $request->withHeader('Host', $request->getUri()->getHost());
                 }
 
