@@ -35,8 +35,8 @@ class ServiceProvider extends IlluminateServiceProvider
         });
 
         $this->app->resolving('queue', function (QueueManager $queue) {
-            $queue->extend('alifc', function () {
-                return new Connector($this->app['alifc']);
+            $queue->extend(AliFC::getFacadeAccessor(), function () {
+                return new Connector($this->app[AliFC::getFacadeAccessor()]);
             });
         });
     }

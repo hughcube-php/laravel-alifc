@@ -43,7 +43,6 @@ class Connector implements ConnectorInterface
         return new Queue(
             $this->fc,
             $config['client'] ?? null,
-            $config['service'],
             $config['function'],
             $config['qualifier'] ?? null,
             isset($config['after_commit']) && $config['after_commit']

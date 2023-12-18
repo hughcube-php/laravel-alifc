@@ -8,20 +8,61 @@
 
 namespace HughCube\Laravel\AliFC;
 
+use AlibabaCloud\SDK\FC\V20230330\FC;
+use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
+use GuzzleHttp\HandlerStack;
 use GuzzleHttp\RequestOptions;
+use HughCube\GuzzleHttp\Client as HttpClient;
+use HughCube\GuzzleHttp\HttpClientTrait;
 use HughCube\GuzzleHttp\LazyResponse;
-use HughCube\Laravel\AliFC\Fc\Auth;
+use HughCube\Laravel\AliFC\Config\Config;
+use Psr\Http\Message\RequestInterface;
 
-class Client extends Auth
+/**
+ * @mixin FC
+ */
+class Client
 {
-    public function getContainerName(): ?string
+    use HttpClientTrait;
+
+    /**
+     * @var null|FC
+     */
+    protected $fc = null;
+
+    /**
+     * @var null|Config
+     */
+    protected $config = null;
+
+    public function __construct(Config $config)
     {
-        return getenv('FC_FUNCTION_NAME') ?: null;
+        $this->config = $config;
     }
 
-    public function inScheduleContainer(): bool
+    public function getConfig(): Config
     {
-        return 'schedule' === $this->getContainerName();
+        return $this->config;
+    }
+
+    public function withConfig(Config $config): Client
+    {
+        /** @phpstan-ignore-next-line */
+        return new static($config);
+    }
+
+    public function getFc(): FC
+    {
+        if (null === $this->fc) {
+            $this->fc = new FC($this->getConfig()->toFcConfig());
+        }
+
+        return $this->fc;
+    }
+
+    public function __call($name, $arguments)
+    {
+        return $this->getFc()->{$name}(...$arguments);
     }
 
     public function request(string $method, $uri, array $options = []): LazyResponse
@@ -29,102 +70,37 @@ class Client extends Auth
         return $this->getHttpClient()->requestLazy(strtoupper($method), $uri, $options);
     }
 
-    /**
-     * @param  string  $service
-     * @param  string  $function
-     * @param  string|null  $qualifier
-     * @param  string|null  $payload
-     * @param  array  $options
-     * @return LazyResponse
-     */
-    public function invoke(
-        string $service,
-        string $function,
-        ?string $qualifier = null,
-        ?string $payload = null,
-        array $options = []
-    ): LazyResponse {
-        $service = empty($qualifier) ? $service : "$service.$qualifier";
-        $path = sprintf('/%s/services/%s/functions/%s/invocations', $this->getApiVersion(), $service, $function);
-
-        $options[RequestOptions::BODY] = $payload;
-        $options[RequestOptions::HEADERS]['X-Fc-Invocation-Type'] = $options['type'] ?? 'Sync';
-        $options[RequestOptions::HEADERS]['X-Fc-Log-Type'] = $options['log'] ?? 'None';
-
-        if (($delay = $options['delay'] ?? 0) > 0) {
-            $options[RequestOptions::HEADERS]['X-Fc-Async-Delay'] = $delay;
-        }
-
-        if (! empty($invokeId = $options['id'] ?? null)) {
-            $options[RequestOptions::HEADERS]['X-Fc-Stateful-Async-Invocation-Id'] = $invokeId;
-        }
-
-        return $this->request('POST', $path, $options);
-    }
-
-    /**
-     * @param  string  $name
-     * @param  string  $description
-     * @param  array  $options
-     * @return LazyResponse
-     *
-     * @see https://help.aliyun.com/document_detail/175256.html
-     */
-    public function createService(string $name, string $description = '', array $options = []): LazyResponse
+    protected function createHttpClient(): HttpClient
     {
-        $path = sprintf('/%s/services', $this->getApiVersion());
-        $options[RequestOptions::JSON]['serviceName'] = $name;
-        $options[RequestOptions::JSON]['description'] = $description;
+        $config = $this->getConfig()->getConfig('Http', []);
 
-        return $this->request('POST', $path, $options);
-    }
+        $config['handler'] = $handler = HandlerStack::create();
 
-    /**
-     * @param  string  $name
-     * @param  string|null  $qualifier
-     * @param  array  $options
-     * @return LazyResponse
-     *
-     * @see https://help.aliyun.com/document_detail/189225.html
-     */
-    public function getService(string $name, ?string $qualifier = null, array $options = []): LazyResponse
-    {
-        $name = empty($qualifier) ? $name : "$name.$qualifier";
-        $path = sprintf('/%s/services/%s', $this->getApiVersion(), $name);
+        /** 替换http请求的host头信息 */
+        $handler->push(function (callable $handler) {
+            return function (RequestInterface $request, array $options) use ($handler) {
+                if (!$request->hasHeader('Host') && !empty($host = $this->getConfig()->getHost())) {
+                    $request = $request->withHeader('Host', $host);
+                }
 
-        return $this->request('GET', $path, $options);
-    }
+                if (!$request->hasHeader('Host')) {
+                    $request = $request->withHeader('Host', $request->getUri()->getHost());
+                }
 
-    public function updateCustomDomain(
-        string $domain,
-        ?array $cert = null,
-        ?array $route = null,
-        string $protocol = null,
-        array $options = []
-    ): LazyResponse {
-        $path = sprintf('/%s/custom-domains/%s', $this->getApiVersion(), $domain);
+                /** When you forcibly change the host using HTTPS, HTTPS authentication must be disabled. */
+                if ('https' === $request->getUri()->getScheme()
+                    && $request->getUri()->getHost() !== $request->getHeaderLine('Host')
+                ) {
+                    $options[RequestOptions::VERIFY] = false;
+                }
 
-        $options[RequestOptions::JSON]['domainName'] = $domain;
+                return $handler($request, $options);
+            };
+        });
 
-        if (! empty($cert)) {
-            $options[RequestOptions::JSON]['certConfig'] = $cert;
-        }
-
-        if (! empty($route)) {
-            $options[RequestOptions::JSON]['routeConfig'] = $route;
-        }
-
-        if (! empty($protocol)) {
-            $options[RequestOptions::JSON]['protocol'] = $protocol;
-        }
-
-        return $this->request('PUT', $path, $options);
-    }
-
-    public function getCustomDomain(string $domain, array $options = []): LazyResponse
-    {
-        $path = sprintf('/%s/custom-domains/%s', $this->getApiVersion(), $domain);
-
-        return $this->request('GET', $path, $options);
+        return new HttpClient(array_merge(
+            ['base_uri' => $this->getConfig()->getFcBaseUri()],
+            $config
+        ));
     }
 }

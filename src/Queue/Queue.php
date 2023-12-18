@@ -9,6 +9,9 @@
 
 namespace HughCube\Laravel\AliFC\Queue;
 
+use AlibabaCloud\SDK\FC\V20230330\Models\InvokeFunctionHeaders;
+use AlibabaCloud\SDK\FC\V20230330\Models\InvokeFunctionRequest;
+use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
 use Carbon\Carbon;
 use DateInterval;
 use DateTimeInterface;
@@ -37,7 +40,7 @@ class Queue extends IlluminateQueue implements QueueContract
 
     /**
      * The service name.
-     *
+     * @deprecated
      * @var string
      */
     protected $service;
@@ -58,25 +61,16 @@ class Queue extends IlluminateQueue implements QueueContract
 
     /**
      * Create a new fc queue instance.
-     *
-     * @param  Fc  $fc
-     * @param  ?string  $client
-     * @param  string  $service
-     * @param  string  $function
-     * @param  string|null  $qualifier
-     * @param  bool  $dispatchAfterCommit
      */
     public function __construct(
         Fc $fc,
         ?string $client,
-        string $service,
         string $function,
         ?string $qualifier = null,
         bool $dispatchAfterCommit = false
     ) {
         $this->fc = $fc;
         $this->client = $client;
-        $this->service = $service;
         $this->function = $function;
         $this->qualifier = $qualifier;
         $this->dispatchAfterCommit = $dispatchAfterCommit;
@@ -158,26 +152,36 @@ class Queue extends IlluminateQueue implements QueueContract
     /**
      * @param  string  $payload
      * @param  DateTimeInterface|DateInterval|int  $delay
-     * @return mixed|string
+     * @return string
      *
      * @throws Exception
      */
-    protected function invokeFc(string $payload, $delay = 0)
+    protected function invokeFc(string $payload, $delay = 0): string
     {
-        $response = $this->getClient()->invoke(
-            $this->service,
+        $response = $this->getClient()->invokeFunctionWithOptions(
             $this->function,
-            $this->qualifier,
-            $payload,
-            ['type' => 'Async', 'delay' => $this->parseDelay($delay)]
+
+            new InvokeFunctionRequest([
+                'body' => $payload,
+                'qualifier' => $this->qualifier,
+            ]),
+
+            new InvokeFunctionHeaders([
+                'xFcInvocationType' => 'Async',
+                'commonHeaders' => [
+                    'X-Fc-Async-Delay' => max($delay, 0)
+                ],
+            ]),
+
+            new RuntimeOptions()
         );
 
-        $requestId = $response->getHeaderLine('X-Fc-Request-Id');
-        if (empty($requestId)) {
+        /** 获取请求ID */
+        if (empty($requestId = $response->headers['X-Fc-Request-Id'][0] ?? null ?: null)) {
             throw new Exception('The function failed to calculate the service response.');
         }
 
-        if (300 > $response->getStatusCode() && 200 <= $response->getStatusCode()) {
+        if (300 > $response->statusCode && 200 <= $response->statusCode) {
             return $requestId;
         }
 
@@ -201,7 +205,7 @@ class Queue extends IlluminateQueue implements QueueContract
      * @param  string  $queue
      * @return int
      */
-    public function clear($queue): int
+    public function clear(string $queue): int
     {
         return 0;
     }

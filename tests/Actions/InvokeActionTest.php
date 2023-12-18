@@ -86,6 +86,6 @@ class InvokeActionTest extends TestCase
 
     protected function getQueue(): Queue
     {
-        return new Queue(new Manager(), 'default', 'default', 'default');
+        return new Queue(new Manager(), 'default', 'default');
     }
 }
