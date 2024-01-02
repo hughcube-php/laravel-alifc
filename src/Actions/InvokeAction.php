@@ -32,7 +32,7 @@ class InvokeAction
      */
     public function action(): JsonResponse
     {
-        if (!$this->isAllow()) {
+        if (! $this->isAllow()) {
             throw new AccessDeniedHttpException();
         }
 
@@ -62,7 +62,7 @@ class InvokeAction
         $paths = $this->getRequest()->header('x-fc-control-path');
         $paths = is_array($paths) ? $paths : [$paths];
 
-        return !in_array('/http-invoke', $paths, true);
+        return ! in_array('/http-invoke', $paths, true);
     }
 
     /**
@@ -79,7 +79,9 @@ class InvokeAction
      */
     protected function getPayload(): string
     {
-        return $this->getRequest()->getContent();
+        $payload = $this->getRequest()->json('payload');
+
+        return $payload ?: $this->getRequest()->getContent();
     }
 
     /**
