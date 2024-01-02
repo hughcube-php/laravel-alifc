@@ -9,7 +9,7 @@
 namespace HughCube\Laravel\AliFC;
 
 use AlibabaCloud\SDK\FC\V20230330\FC;
-use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
+use Darabonba\OpenApi\Models\Config as FcConfig;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\RequestOptions;
 use HughCube\GuzzleHttp\Client as HttpClient;
@@ -21,7 +21,7 @@ use Psr\Http\Message\RequestInterface;
 /**
  * @mixin FC
  */
-class Client
+class Client extends Config
 {
     use HttpClientTrait;
 
@@ -30,33 +30,19 @@ class Client
      */
     protected $fc = null;
 
-    /**
-     * @var null|Config
-     */
-    protected $config = null;
-
-    public function __construct(Config $config)
-    {
-        $this->config = $config;
-    }
-
-    public function getConfig(): Config
-    {
-        return $this->config;
-    }
-
-    public function withConfig(Config $config): Client
-    {
-        /** @phpstan-ignore-next-line */
-        return new static($config);
-    }
-
     public function getFc(): FC
     {
         if (null === $this->fc) {
-            $this->fc = new FC($this->getConfig()->toFcConfig());
+            $this->fc = new FC(new FcConfig([
+                'accessKeyId' => $this->getAccessKeyId(),
+                'accessKeySecret' => $this->getAccessKeySecret(),
+                'securityToken' => $this->getSecurityToken(),
+                'protocol' => $this->getScheme(),
+                'regionId' => $this->getRegionId(),
+                'endpoint' => $this->getEndpoint(),
+                'type' => $this->getType(),
+            ]));
         }
-
         return $this->fc;
     }
 
@@ -72,14 +58,14 @@ class Client
 
     protected function createHttpClient(): HttpClient
     {
-        $config = $this->getConfig()->getConfig('Http', []);
+        $config = $this->getConfig('Http', []);
 
         $config['handler'] = $handler = HandlerStack::create();
 
         /** 替换http请求的host头信息 */
         $handler->push(function (callable $handler) {
             return function (RequestInterface $request, array $options) use ($handler) {
-                if (!$request->hasHeader('Host') && !empty($host = $this->getConfig()->getHost())) {
+                if (!$request->hasHeader('Host') && !empty($host = $this->getHost())) {
                     $request = $request->withHeader('Host', $host);
                 }
 
@@ -99,7 +85,7 @@ class Client
         });
 
         return new HttpClient(array_merge(
-            ['base_uri' => $this->getConfig()->getFcBaseUri()],
+            ['base_uri' => $this->getFcBaseUri()],
             $config
         ));
     }

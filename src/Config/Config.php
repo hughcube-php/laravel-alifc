@@ -92,11 +92,4 @@ class Config
     {
         return $this->with(['RegionId' => $regionId]);
     }
-
-    public function toFcConfig(): FcConfig
-    {
-        return new FcConfig([
-            'endpoint' => $this->getEndpoint(),
-        ]);
-    }
 }
