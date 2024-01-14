@@ -14,6 +14,7 @@ use HughCube\Laravel\AliFC\Queue\Queue;
 use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
 use ReflectionClass;
+
 use function json_decode;
 
 class JobPayloadCommand extends Command

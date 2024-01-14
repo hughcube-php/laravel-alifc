@@ -134,8 +134,8 @@ class Queue extends IlluminateQueue implements QueueContract
     /**
      * @param  string  $payload
      * @param  int|DateInterval|DateTimeInterface  $delay
-     *
      * @return string
+     *
      * @throws Exception
      */
     protected function invokeFc(string $payload, $delay = 0): string
@@ -149,7 +149,7 @@ class Queue extends IlluminateQueue implements QueueContract
         }
 
         /** 别名 */
-        if (!empty($this->qualifier)) {
+        if (! empty($this->qualifier)) {
             $query['qualifier'] = $this->qualifier;
         }
 
@@ -217,6 +217,7 @@ class Queue extends IlluminateQueue implements QueueContract
 
     /**
      * @param  int|DateInterval|DateTimeInterface  $delay
+     *
      * @throws Exception
      */
     protected function parseDelay($delay = 0): int
