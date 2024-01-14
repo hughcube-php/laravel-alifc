@@ -24,7 +24,7 @@ class JobPayloadCommand extends Command
      * @inheritdoc
      */
     protected $signature = 'alifc:job-payload
-                           {job : The name of the job class}
+                           {job=\App\Jobs\AAAScheduleJob : The name of the job class}
                            {--data= : The name of the job class}';
 
     /**

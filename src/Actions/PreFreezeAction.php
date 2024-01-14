@@ -8,20 +8,6 @@
 
 namespace HughCube\Laravel\AliFC\Actions;
 
-use Illuminate\Http\JsonResponse;
-
-class PreFreezeAction
+class PreFreezeAction extends Action
 {
-    /**
-     * @return JsonResponse
-     */
-    public function action(): JsonResponse
-    {
-        return new JsonResponse(['code' => 200, 'message' => 'ok']);
-    }
-
-    public function __invoke(): JsonResponse
-    {
-        return $this->action();
-    }
 }

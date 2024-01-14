@@ -17,35 +17,20 @@ use DateInterval;
 use DateTimeInterface;
 use Exception;
 use HughCube\Laravel\AliFC\Client;
-use HughCube\Laravel\AliFC\Manager as Fc;
+use Illuminate\Contracts\Queue\Job as JobContract;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 use Illuminate\Queue\Queue as IlluminateQueue;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class Queue extends IlluminateQueue implements QueueContract
 {
     /**
-     * The fc factory implementation.
-     *
-     * @var Fc
-     */
-    protected $fc;
-
-    /**
      * The client name.
      *
-     * @var null|string
+     * @var Client
      */
     protected $client;
-
-    /**
-     * The service name.
-     *
-     * @deprecated
-     *
-     * @var string
-     */
-    protected $service;
 
     /**
      * The function name.
@@ -65,13 +50,11 @@ class Queue extends IlluminateQueue implements QueueContract
      * Create a new fc queue instance.
      */
     public function __construct(
-        Fc $fc,
-        ?string $client,
+        Client $client,
         string $function,
         ?string $qualifier = null,
         bool $dispatchAfterCommit = false
     ) {
-        $this->fc = $fc;
         $this->client = $client;
         $this->function = $function;
         $this->qualifier = $qualifier;
@@ -130,7 +113,7 @@ class Queue extends IlluminateQueue implements QueueContract
     /**
      * Push a new job onto the queue after a delay.
      *
-     * @param  DateTimeInterface|DateInterval|int  $delay
+     * @param  int|DateInterval|DateTimeInterface  $delay
      * @param  object|string  $job
      * @param  mixed  $data
      * @param  string|null  $queue
@@ -153,14 +136,14 @@ class Queue extends IlluminateQueue implements QueueContract
 
     /**
      * @param  string  $payload
-     * @param  DateTimeInterface|DateInterval|int  $delay
-     * @return string
+     * @param  int|DateInterval|DateTimeInterface  $delay
      *
+     * @return string
      * @throws Exception
      */
     protected function invokeFc(string $payload, $delay = 0): string
     {
-        $response = $this->getClient()->invokeFunctionWithOptions(
+        $response = $this->client->invokeFunctionWithOptions(
             $this->function,
 
             new InvokeFunctionRequest([
@@ -171,7 +154,7 @@ class Queue extends IlluminateQueue implements QueueContract
             new InvokeFunctionHeaders([
                 'xFcInvocationType' => 'Async',
                 'commonHeaders' => [
-                    'X-Fc-Async-Delay' => max($delay, 0),
+                    'X-Fc-Async-Delay' => $this->parseDelay($delay),
                 ],
             ]),
 
@@ -179,33 +162,29 @@ class Queue extends IlluminateQueue implements QueueContract
         );
 
         /** 获取请求ID */
-        if (empty($requestId = $response->headers['X-Fc-Request-Id'][0] ?? null ?: null)) {
-            throw new Exception('The function failed to calculate the service response.');
+        if (empty($requestId = Collection::make($response->headers['X-Fc-Request-Id'])->first() ?: null)) {
+            throw new Exception('Description Failed to invoke the fc service.');
         }
 
         if (300 > $response->statusCode && 200 <= $response->statusCode) {
             return $requestId;
         }
 
-        throw new Exception(sprintf('The function calculation call failed, RequestId:%s', $requestId));
+        throw new Exception(sprintf('Description Failed to invoke the fc service, RequestId:%s', $requestId));
     }
 
     /**
      * Pop the next job off of the queue.
      *
      * @param  string|null  $queue
-     * @return \Illuminate\Contracts\Queue\Job|null
      */
-    public function pop($queue = null): ?\Illuminate\Contracts\Queue\Job
+    public function pop($queue = null): ?JobContract
     {
         return null;
     }
 
     /**
      * Delete all the jobs from the queue.
-     *
-     * @param  string  $queue
-     * @return int
      */
     public function clear(string $queue): int
     {
@@ -214,8 +193,6 @@ class Queue extends IlluminateQueue implements QueueContract
 
     /**
      * Get a random ID string.
-     *
-     * @return string
      */
     protected function getRandomId(): string
     {
@@ -228,7 +205,6 @@ class Queue extends IlluminateQueue implements QueueContract
      * @param  string  $job
      * @param  string  $queue
      * @param  mixed  $data
-     * @return array
      */
     protected function createPayloadArray($job, $queue, $data = ''): array
     {
@@ -238,12 +214,10 @@ class Queue extends IlluminateQueue implements QueueContract
     }
 
     /**
-     * @param  DateTimeInterface|DateInterval|int  $delay
-     * @return int
-     *
+     * @param  int|DateInterval|DateTimeInterface  $delay
      * @throws Exception
      */
-    protected function parseDelay($delay): int
+    protected function parseDelay($delay = 0): int
     {
         if ($delay instanceof DateTimeInterface) {
             return $delay->getTimestamp() - time();
@@ -253,26 +227,6 @@ class Queue extends IlluminateQueue implements QueueContract
             return $delay->s;
         }
 
-        return $delay;
-    }
-
-    /**
-     * Get the connection for the queue.
-     *
-     * @return Client
-     */
-    public function getClient(): Client
-    {
-        return $this->getFc()->client($this->client);
-    }
-
-    /**
-     * Get the underlying fc instance.
-     *
-     * @return Fc
-     */
-    public function getFc(): Fc
-    {
-        return $this->fc;
+        return intval(max($delay, 0));
     }
 }

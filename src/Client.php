@@ -8,7 +8,7 @@
 
 namespace HughCube\Laravel\AliFC;
 
-use AlibabaCloud\SDK\FC\V20230330\FC;
+use AlibabaCloud\SDK\FC\V20230330\FC as FcClient;
 use Darabonba\OpenApi\Models\Config as FcConfig;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\RequestOptions;
@@ -19,36 +19,50 @@ use HughCube\Laravel\AliFC\Config\Config;
 use Psr\Http\Message\RequestInterface;
 
 /**
- * @mixin FC
+ * @mixin FcClient
  */
-class Client extends Config
+class Client
 {
     use HttpClientTrait;
 
     /**
-     * @var null|FC
+     * @var Config
      */
-    protected $fc = null;
+    protected $config = null;
 
-    public function getFc(): FC
+    /**
+     * @var null|FcClient
+     */
+    protected $fcClient = null;
+
+    public function __construct(Config $config)
     {
-        if (null === $this->fc) {
-            $this->fc = new FC(new FcConfig([
-                'accessKeyId' => $this->getAccessKeyId(),
-                'accessKeySecret' => $this->getAccessKeySecret(),
-                'securityToken' => $this->getSecurityToken(),
-                'protocol' => $this->getScheme(),
-                'regionId' => $this->getRegionId(),
-                'endpoint' => $this->getEndpoint(),
-                'type' => $this->getType(),
-            ]));
-        }
-        return $this->fc;
+        $this->config = $config;
+
+        $this->fcClient = new FcClient(new FcConfig([
+            'accessKeyId' => $this->getConfig()->getAccessKeyId(),
+            'accessKeySecret' => $this->getConfig()->getAccessKeySecret(),
+            'securityToken' => $this->getConfig()->getSecurityToken(),
+            'protocol' => $this->getConfig()->getScheme(),
+            'regionId' => $this->getConfig()->getRegionId(),
+            'endpoint' => $this->getConfig()->getEndpoint(),
+            'type' => $this->getConfig()->getType(),
+        ]));
+    }
+
+    public function getConfig(): Config
+    {
+        return $this->config;
+    }
+
+    public function getFcClient(): FcClient
+    {
+        return $this->fcClient;
     }
 
     public function __call($name, $arguments)
     {
-        return $this->getFc()->{$name}(...$arguments);
+        return $this->getFcClient()->{$name}(...$arguments);
     }
 
     public function request(string $method, $uri, array $options = []): LazyResponse
@@ -58,15 +72,19 @@ class Client extends Config
 
     protected function createHttpClient(): HttpClient
     {
-        $config = $this->getConfig('Http', []);
+        $config = $this->getConfig()->get('Http', []);
 
         $config['handler'] = $handler = HandlerStack::create();
 
         /** 替换http请求的host头信息 */
         $handler->push(function (callable $handler) {
             return function (RequestInterface $request, array $options) use ($handler) {
-                if (!$request->hasHeader('Host') && !empty($host = $this->getHost())) {
+                if (!$request->hasHeader('Host') && !empty($host = $this->getConfig()->getHost())) {
                     $request = $request->withHeader('Host', $host);
+                }
+
+                if (!$request->hasHeader('Date')) {
+                    $request = $request->withHeader('Date', gmdate('D, d M Y H:i:s T'));
                 }
 
                 if (!$request->hasHeader('Host')) {
@@ -84,9 +102,6 @@ class Client extends Config
             };
         });
 
-        return new HttpClient(array_merge(
-            ['base_uri' => $this->getFcBaseUri()],
-            $config
-        ));
+        return new HttpClient(array_merge(['base_uri' => $this->getConfig()->getFcBaseUri()], $config));
     }
 }

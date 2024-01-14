@@ -11,6 +11,8 @@ namespace HughCube\Laravel\AliFC;
 use HughCube\Laravel\ServiceSupport\Manager as ServiceSupportManager;
 
 /**
+ * @method Client client($name = null)
+ *
  * @mixin Client
  */
 class Manager extends ServiceSupportManager
@@ -20,7 +22,7 @@ class Manager extends ServiceSupportManager
         return new Client(new Config\Config($config));
     }
 
-    protected function makeClient(array $config): Client
+    public function makeClient(array $config): Client
     {
         return $this->makeDriver($config);
     }

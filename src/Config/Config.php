@@ -20,49 +20,49 @@ class Config
         $this->config = $config;
     }
 
-    public function getConfig(string $key, $default = null)
+    public function get(string $key, $default = null)
     {
         return Arr::get($this->config, $key, $default);
     }
 
     public function getAccessKeyId(): ?string
     {
-        return $this->getConfig('AccessKeyID');
+        return $this->get('AccessKeyID');
     }
 
     public function getType(): ?string
     {
-        return $this->getConfig('Type');
+        return $this->get('Type');
     }
 
     public function getAccessKeySecret(): ?string
     {
-        return $this->getConfig('AccessKeySecret');
+        return $this->get('AccessKeySecret');
     }
 
     public function getSecurityToken(): ?string
     {
-        return $this->getConfig('SecurityToken');
+        return $this->get('SecurityToken');
     }
 
     public function getRegionId(): ?string
     {
-        return $this->getConfig('RegionId');
+        return $this->get('RegionId');
     }
 
     public function getAccountId(): ?string
     {
-        return $this->getConfig('AccountId');
+        return $this->get('AccountId');
     }
 
     public function isInternal(): bool
     {
-        return true == $this->getConfig('Internal');
+        return true == $this->get('Internal');
     }
 
     public function getScheme(): string
     {
-        return $this->getConfig('Scheme') ?? 'https';
+        return $this->get('Scheme') ?? 'https';
     }
 
     public function getEndpoint(): string
@@ -74,7 +74,7 @@ class Config
 
     public function getHost(): ?string
     {
-        return $this->getConfig('Host') ?: null;
+        return $this->get('Host') ?: null;
     }
 
     public function getFcBaseUri(): string
