@@ -84,7 +84,9 @@ class Client
     {
         /** 设置版本号 */
         $options[RequestOptions::HEADERS]['X-Acs-Version'] = $this->getConfig()->getVersion();
-        $uri = is_string($uri) ? strtr($uri, ['{{fcApiVersion}}' => $options[RequestOptions::HEADERS]['X-Acs-Version']]) : $uri;
+        if (is_string($uri)) {
+            $uri = strtr($uri, ['{{fcApiVersion}}' => $options[RequestOptions::HEADERS]['X-Acs-Version']]);
+        }
 
         /** fcApi调用 */
         $options['fcApi'] = true;
