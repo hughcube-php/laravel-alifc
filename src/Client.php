@@ -18,9 +18,6 @@ use HughCube\GuzzleHttp\LazyResponse;
 use HughCube\Laravel\AliFC\Config\Config;
 use HughCube\Laravel\AliFC\Util\OpenApiUtil;
 
-/**
- * @mixin FcClient
- */
 class Client
 {
     use HttpClientTrait;
@@ -29,11 +26,6 @@ class Client
      * @var Config
      */
     protected $config = null;
-
-    /**
-     * @var null|FcClient
-     */
-    protected $fcClient = null;
 
     public function __construct(Config $config)
     {
@@ -45,34 +37,10 @@ class Client
         return $this->config;
     }
 
-    public function withRegionId(string $regionId): Config
+    public function withRegionId(string $regionId): Client
     {
         /** @phpstan-ignore-next-line */
         return new static($this->getConfig()->withRegionId($regionId));
-    }
-
-    public function getFcClient(): FcClient
-    {
-        if (null === $this->fcClient) {
-            $this->fcClient = new FcClient(new FcConfig([
-                'accessKeyId' => $this->getConfig()->getAccessKeyId(),
-                'accessKeySecret' => $this->getConfig()->getAccessKeySecret(),
-                'securityToken' => $this->getConfig()->getSecurityToken(),
-                'protocol' => $this->getConfig()->getScheme(),
-                'regionId' => $this->getConfig()->getRegionId(),
-                'endpoint' => $this->getConfig()->getEndpoint(),
-                'type' => $this->getConfig()->getType(),
-                'httpProxy' => 'http://host.docker.internal:8888',
-                'httpsProxy' => 'http://host.docker.internal:8888',
-            ]));
-        }
-
-        return $this->fcClient;
-    }
-
-    public function __call($name, $arguments)
-    {
-        return $this->getFcClient()->{$name}(...$arguments);
     }
 
     public function request(string $method, $uri, array $options = []): LazyResponse

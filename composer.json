@@ -16,11 +16,10 @@
     "require": {
         "php": ">=7.2|8.*",
         "ext-json": "*",
-        "alibabacloud/fc-20230330": ">=3.0",
-        "hughcube/laravel-service-support": "*",
-        "hughcube/guzzle-http": "*",
         "hughcube/purl": "*",
-        "hughcube/static-instance": "*"
+        "hughcube/guzzle-http": "*",
+        "hughcube/static-instance": "*",
+        "hughcube/laravel-service-support": "*"
     },
     "require-dev": {
         "laravel/framework": "*",
