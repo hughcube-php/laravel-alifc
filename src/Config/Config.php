@@ -8,7 +8,6 @@
 
 namespace HughCube\Laravel\AliFC\Config;
 
-use Darabonba\OpenApi\Models\Config as FcConfig;
 use Illuminate\Support\Arr;
 
 class Config
@@ -28,6 +27,16 @@ class Config
     public function getAccessKeyId(): ?string
     {
         return $this->get('AccessKeyID');
+    }
+
+    public function getVersion(): string
+    {
+        return $this->get('Version', '2023-03-30');
+    }
+
+    public function getSignatureAlgorithm(): string
+    {
+        return $this->get('SignatureAlgorithm', 'ACS3-HMAC-SHA256');
     }
 
     public function getType(): ?string

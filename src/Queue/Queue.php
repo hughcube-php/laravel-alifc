@@ -9,18 +9,15 @@
 
 namespace HughCube\Laravel\AliFC\Queue;
 
-use AlibabaCloud\SDK\FC\V20230330\Models\InvokeFunctionHeaders;
-use AlibabaCloud\SDK\FC\V20230330\Models\InvokeFunctionRequest;
-use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
 use Carbon\Carbon;
 use DateInterval;
 use DateTimeInterface;
 use Exception;
+use GuzzleHttp\RequestOptions;
 use HughCube\Laravel\AliFC\Client;
 use Illuminate\Contracts\Queue\Job as JobContract;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 use Illuminate\Queue\Queue as IlluminateQueue;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class Queue extends IlluminateQueue implements QueueContract
@@ -50,7 +47,7 @@ class Queue extends IlluminateQueue implements QueueContract
      * Create a new fc queue instance.
      */
     public function __construct(
-        Client $client,
+        ?Client $client,
         string $function,
         ?string $qualifier = null,
         bool $dispatchAfterCommit = false
@@ -143,30 +140,35 @@ class Queue extends IlluminateQueue implements QueueContract
      */
     protected function invokeFc(string $payload, $delay = 0): string
     {
-        $response = $this->client->invokeFunctionWithOptions(
-            $this->function,
+        $query = [];
+        $headers = ['X-Acs-action' => 'InvokeFunction', 'X-Fc-Invocation-Type' => 'Async'];
 
-            new InvokeFunctionRequest([
-                'body' => $payload,
-                'qualifier' => $this->qualifier,
-            ]),
+        /** 延时执行 */
+        if (0 < ($delay = $this->parseDelay($delay))) {
+            $headers['X-Fc-Async-Delay'] = $delay;
+        }
 
-            new InvokeFunctionHeaders([
-                'xFcInvocationType' => 'Async',
-                'commonHeaders' => [
-                    'X-Fc-Async-Delay' => $this->parseDelay($delay),
-                ],
-            ]),
+        /** 别名 */
+        if (!empty($this->qualifier)) {
+            $query['qualifier'] = $this->qualifier;
+        }
 
-            new RuntimeOptions()
+        $response = $this->client->fcApi(
+            'POST',
+            sprintf('/{{fcApiVersion}}/functions/%s/invocations', $this->function),
+            [
+                RequestOptions::BODY => $payload,
+                RequestOptions::QUERY => $query,
+                RequestOptions::HEADERS => $headers,
+            ]
         );
 
         /** 获取请求ID */
-        if (empty($requestId = Collection::make($response->headers['X-Fc-Request-Id'])->first() ?: null)) {
+        if (empty($requestId = $response->getHeaderLine('X-Fc-Request-Id'))) {
             throw new Exception('Description Failed to invoke the fc service.');
         }
 
-        if (300 > $response->statusCode && 200 <= $response->statusCode) {
+        if (300 > $response->getStatusCode() && 200 <= $response->getStatusCode()) {
             return $requestId;
         }
 

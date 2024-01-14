@@ -10,12 +10,10 @@
 namespace HughCube\Laravel\AliFC\Commands;
 
 use Exception;
-use HughCube\Laravel\AliFC\Manager;
 use HughCube\Laravel\AliFC\Queue\Queue;
 use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
 use ReflectionClass;
-
 use function json_decode;
 
 class JobPayloadCommand extends Command
@@ -89,6 +87,6 @@ class JobPayloadCommand extends Command
 
     protected function getQueue(): Queue
     {
-        return new Queue(new Manager(), 'default', 'default');
+        return new Queue(null, 'default', 'default');
     }
 }
