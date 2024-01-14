@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: hugh.li
  * Date: 2024/1/12
- * Time: 18:55
+ * Time: 18:55.
  */
 
 namespace HughCube\Laravel\AliFC\Actions;
@@ -46,6 +46,7 @@ abstract class Action
 
     /**
      * @phpstan-ignore-next-line
+     *
      * @throws
      */
     protected function getDispatcher(): Dispatcher
@@ -55,6 +56,7 @@ abstract class Action
 
     /**
      * @phpstan-ignore-next-line
+     *
      * @throws
      */
     protected function getEventsDispatcher(): EventsDispatcher

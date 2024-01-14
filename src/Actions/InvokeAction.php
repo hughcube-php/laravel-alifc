@@ -33,12 +33,12 @@ class InvokeAction extends Action
      */
     public function action(): Response
     {
-        if (!$this->isAllow()) {
+        if (! $this->isAllow()) {
             throw new AccessDeniedHttpException();
         }
 
         $job = $this->parseJob($this->getPayload());
-        if (!$job instanceof Job) {
+        if (! $job instanceof Job) {
             throw new BadRequestHttpException('Unexpected payload.');
         }
 
@@ -49,7 +49,7 @@ class InvokeAction extends Action
             'code' => 200,
             'message' => 'ok',
             'data' => [
-                'job' => $job->getJobId()
+                'job' => $job->getJobId(),
             ],
         ]);
     }
@@ -67,7 +67,7 @@ class InvokeAction extends Action
         $paths = $this->getRequest()->header('x-fc-control-path');
         $paths = is_array($paths) ? $paths : [$paths];
 
-        return !in_array('/http-invoke', $paths, true);
+        return ! in_array('/http-invoke', $paths, true);
     }
 
     /**
@@ -89,6 +89,7 @@ class InvokeAction extends Action
     protected function getPayload(): ?string
     {
         $payload = $this->getRequest()->json('payload');
+
         return $payload ?: $this->getRequest()->getContent() ?: null;
     }
 
@@ -97,7 +98,7 @@ class InvokeAction extends Action
      */
     protected function listenForEvents()
     {
-        if (!static::$hasListenEvents) {
+        if (! static::$hasListenEvents) {
             return;
         }
 
