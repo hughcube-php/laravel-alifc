@@ -8,20 +8,71 @@
 
 namespace HughCube\Laravel\AliFC;
 
+use AlibabaCloud\SDK\FC\V20230330\FC as FcClient;
+use Darabonba\OpenApi\Models\Config as FcConfig;
+use GuzzleHttp\HandlerStack;
 use GuzzleHttp\RequestOptions;
+use HughCube\GuzzleHttp\Client as HttpClient;
+use HughCube\GuzzleHttp\HttpClientTrait;
 use HughCube\GuzzleHttp\LazyResponse;
-use HughCube\Laravel\AliFC\Fc\Auth;
+use HughCube\Laravel\AliFC\Config\Config;
+use HughCube\Laravel\AliFC\Util\OpenApiUtil;
 
-class Client extends Auth
+/**
+ * @mixin FcClient
+ */
+class Client
 {
-    public function getContainerName(): ?string
+    use HttpClientTrait;
+
+    /**
+     * @var Config
+     */
+    protected $config = null;
+
+    /**
+     * @var null|FcClient
+     */
+    protected $fcClient = null;
+
+    public function __construct(Config $config)
     {
-        return getenv('FC_FUNCTION_NAME') ?: null;
+        $this->config = $config;
     }
 
-    public function inScheduleContainer(): bool
+    public function getConfig(): Config
     {
-        return 'schedule' === $this->getContainerName();
+        return $this->config;
+    }
+
+    public function withRegionId(string $regionId): Config
+    {
+        /** @phpstan-ignore-next-line */
+        return new static($this->getConfig()->withRegionId($regionId));
+    }
+
+    public function getFcClient(): FcClient
+    {
+        if (null === $this->fcClient) {
+            $this->fcClient = new FcClient(new FcConfig([
+                'accessKeyId' => $this->getConfig()->getAccessKeyId(),
+                'accessKeySecret' => $this->getConfig()->getAccessKeySecret(),
+                'securityToken' => $this->getConfig()->getSecurityToken(),
+                'protocol' => $this->getConfig()->getScheme(),
+                'regionId' => $this->getConfig()->getRegionId(),
+                'endpoint' => $this->getConfig()->getEndpoint(),
+                'type' => $this->getConfig()->getType(),
+                'httpProxy' => 'http://host.docker.internal:8888',
+                'httpsProxy' => 'http://host.docker.internal:8888',
+            ]));
+        }
+
+        return $this->fcClient;
+    }
+
+    public function __call($name, $arguments)
+    {
+        return $this->getFcClient()->{$name}(...$arguments);
     }
 
     public function request(string $method, $uri, array $options = []): LazyResponse
@@ -29,102 +80,36 @@ class Client extends Auth
         return $this->getHttpClient()->requestLazy(strtoupper($method), $uri, $options);
     }
 
-    /**
-     * @param  string  $service
-     * @param  string  $function
-     * @param  string|null  $qualifier
-     * @param  string|null  $payload
-     * @param  array  $options
-     * @return LazyResponse
-     */
-    public function invoke(
-        string $service,
-        string $function,
-        ?string $qualifier = null,
-        ?string $payload = null,
-        array $options = []
-    ): LazyResponse {
-        $service = empty($qualifier) ? $service : "$service.$qualifier";
-        $path = sprintf('/%s/services/%s/functions/%s/invocations', $this->getApiVersion(), $service, $function);
-
-        $options[RequestOptions::BODY] = $payload;
-        $options[RequestOptions::HEADERS]['X-Fc-Invocation-Type'] = $options['type'] ?? 'Sync';
-        $options[RequestOptions::HEADERS]['X-Fc-Log-Type'] = $options['log'] ?? 'None';
-
-        if (($delay = $options['delay'] ?? 0) > 0) {
-            $options[RequestOptions::HEADERS]['X-Fc-Async-Delay'] = $delay;
-        }
-
-        if (! empty($invokeId = $options['id'] ?? null)) {
-            $options[RequestOptions::HEADERS]['X-Fc-Stateful-Async-Invocation-Id'] = $invokeId;
-        }
-
-        return $this->request('POST', $path, $options);
-    }
-
-    /**
-     * @param  string  $name
-     * @param  string  $description
-     * @param  array  $options
-     * @return LazyResponse
-     *
-     * @see https://help.aliyun.com/document_detail/175256.html
-     */
-    public function createService(string $name, string $description = '', array $options = []): LazyResponse
+    public function fcApi(string $method, $uri, array $options = []): LazyResponse
     {
-        $path = sprintf('/%s/services', $this->getApiVersion());
-        $options[RequestOptions::JSON]['serviceName'] = $name;
-        $options[RequestOptions::JSON]['description'] = $description;
+        /** 设置版本号 */
+        $options[RequestOptions::HEADERS]['X-Acs-Version'] = $this->getConfig()->getVersion();
+        if (is_string($uri)) {
+            $uri = strtr($uri, ['{{fcApiVersion}}' => $options[RequestOptions::HEADERS]['X-Acs-Version']]);
+        }
 
-        return $this->request('POST', $path, $options);
+        /** fcApi调用 */
+        $options['fcApi'] = true;
+
+        return $this->request($method, $uri, $options);
     }
 
-    /**
-     * @param  string  $name
-     * @param  string|null  $qualifier
-     * @param  array  $options
-     * @return LazyResponse
-     *
-     * @see https://help.aliyun.com/document_detail/189225.html
-     */
-    public function getService(string $name, ?string $qualifier = null, array $options = []): LazyResponse
+    protected function createHttpClient(): HttpClient
     {
-        $name = empty($qualifier) ? $name : "$name.$qualifier";
-        $path = sprintf('/%s/services/%s', $this->getApiVersion(), $name);
+        $config = $this->getConfig()->get('Http', []);
 
-        return $this->request('GET', $path, $options);
-    }
+        $config['handler'] = $handler = HandlerStack::create();
 
-    public function updateCustomDomain(
-        string $domain,
-        ?array $cert = null,
-        ?array $route = null,
-        string $protocol = null,
-        array $options = []
-    ): LazyResponse {
-        $path = sprintf('/%s/custom-domains/%s', $this->getApiVersion(), $domain);
+        /** 替换http请求的host头信息 */
+        $handler->push(function (callable $handler) {
+            return OpenApiUtil::completeRequestMiddleware($this, $handler);
+        });
 
-        $options[RequestOptions::JSON]['domainName'] = $domain;
+        /** fcApi签名 */
+        $handler->push(function (callable $handler) {
+            return OpenApiUtil::fcApiSignatureRequestMiddleware($this, $handler);
+        });
 
-        if (! empty($cert)) {
-            $options[RequestOptions::JSON]['certConfig'] = $cert;
-        }
-
-        if (! empty($route)) {
-            $options[RequestOptions::JSON]['routeConfig'] = $route;
-        }
-
-        if (! empty($protocol)) {
-            $options[RequestOptions::JSON]['protocol'] = $protocol;
-        }
-
-        return $this->request('PUT', $path, $options);
-    }
-
-    public function getCustomDomain(string $domain, array $options = []): LazyResponse
-    {
-        $path = sprintf('/%s/custom-domains/%s', $this->getApiVersion(), $domain);
-
-        return $this->request('GET', $path, $options);
+        return new HttpClient(array_merge(['base_uri' => $this->getConfig()->getFcBaseUri()], $config));
     }
 }

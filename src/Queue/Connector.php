@@ -9,7 +9,7 @@
 
 namespace HughCube\Laravel\AliFC\Queue;
 
-use HughCube\Laravel\AliFC\Manager as Fc;
+use HughCube\Laravel\AliFC\Manager;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 use Illuminate\Queue\Connectors\ConnectorInterface;
 
@@ -18,18 +18,18 @@ class Connector implements ConnectorInterface
     /**
      * fc connections.
      *
-     * @var Fc
+     * @var Manager
      */
-    protected $fc;
+    protected $connections;
 
     /**
      * Create a new connector instance.
      *
-     * @param  Fc  $fc
+     * @param  Manager  $connections
      */
-    public function __construct(Fc $fc)
+    public function __construct(Manager $connections)
     {
-        $this->fc = $fc;
+        $this->connections = $connections;
     }
 
     /**
@@ -41,9 +41,7 @@ class Connector implements ConnectorInterface
     public function connect(array $config): QueueContract
     {
         return new Queue(
-            $this->fc,
-            $config['client'] ?? null,
-            $config['service'],
+            $this->connections->client($config['client'] ?? null),
             $config['function'],
             $config['qualifier'] ?? null,
             isset($config['after_commit']) && $config['after_commit']

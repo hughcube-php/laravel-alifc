@@ -10,7 +10,6 @@
 namespace HughCube\Laravel\AliFC\Commands;
 
 use Exception;
-use HughCube\Laravel\AliFC\Manager;
 use HughCube\Laravel\AliFC\Queue\Queue;
 use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
@@ -24,7 +23,7 @@ class JobPayloadCommand extends Command
      * @inheritdoc
      */
     protected $signature = 'alifc:job-payload
-                           {job : The name of the job class}
+                           {job=\App\Jobs\AAAScheduleJob : The name of the job class}
                            {--data= : The name of the job class}';
 
     /**
@@ -89,6 +88,6 @@ class JobPayloadCommand extends Command
 
     protected function getQueue(): Queue
     {
-        return new Queue(new Manager(), 'default', 'default', 'default');
+        return new Queue(null, 'default', 'default');
     }
 }

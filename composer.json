@@ -16,6 +16,8 @@
     "require": {
         "php": ">=7.2|8.*",
         "ext-json": "*",
+        "alibabacloud/fc-20230330": ">=3.0",
+        "hughcube/laravel-service-support": "*",
         "hughcube/guzzle-http": "*",
         "hughcube/purl": "*",
         "hughcube/static-instance": "*"
@@ -28,9 +30,6 @@
         "orchestra/testbench": "*"
     },
     "autoload": {
-        "files": [
-            "src/helpers.php"
-        ],
         "psr-4": {
             "HughCube\\Laravel\\AliFC\\": "src/"
         }

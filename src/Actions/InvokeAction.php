@@ -8,20 +8,21 @@
 
 namespace HughCube\Laravel\AliFC\Actions;
 
-use HughCube\Laravel\AliFC\Listeners\LogFailedJob;
 use HughCube\Laravel\AliFC\Queue\Job;
-use Illuminate\Container\Container as IlluminateContainer;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Events\Dispatcher as EventsDispatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\Worker;
 use Illuminate\Queue\WorkerOptions;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Throwable;
 
-class InvokeAction
+class InvokeAction extends Action
 {
     protected static $hasListenEvents;
 
@@ -30,28 +31,32 @@ class InvokeAction
      *
      * @throws Throwable
      */
-    public function action(): JsonResponse
+    public function action(): Response
     {
         if (! $this->isAllow()) {
             throw new AccessDeniedHttpException();
         }
 
-        $this->listenForEvents();
-
         $job = $this->parseJob($this->getPayload());
+        if (! $job instanceof Job) {
+            throw new BadRequestHttpException('Unexpected payload.');
+        }
 
-        /** @var Worker $worker */
-        $worker = $this->getContainer()->make('queue.worker');
-
-        $worker->process('alifc', $job, new WorkerOptions());
+        $this->listenForEvents();
+        $this->getQueueWorker()->process('alifc', $job, new WorkerOptions());
 
         return new JsonResponse([
             'code' => 200,
             'message' => 'ok',
-            'data' => ['job' => $job->getJobId()],
+            'data' => [
+                'job' => $job->getJobId(),
+            ],
         ]);
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     protected function isAllow(): bool
     {
         /** allow if set */
@@ -69,27 +74,55 @@ class InvokeAction
      * @param  string|null  $payload
      * @return Job
      */
-    protected function parseJob(?string $payload): Job
+    protected function parseJob(?string $payload): ?Job
     {
+        if (empty($payload)) {
+            return null;
+        }
+
         return new Job($this->getContainer(), $payload, 'alifc', 'default');
     }
 
     /**
-     * @return string
+     * @throws BindingResolutionException
      */
-    protected function getPayload(): string
+    protected function getPayload(): ?string
     {
         $payload = $this->getRequest()->json('payload');
 
-        return $payload ?: $this->getRequest()->getContent();
+        return $payload ?: $this->getRequest()->getContent() ?: null;
     }
 
     /**
-     * @return Request
-     *
-     * @phpstan-ignore-next-line
-     *
-     * @throws
+     * @throws BindingResolutionException
+     */
+    protected function listenForEvents()
+    {
+        if (! static::$hasListenEvents) {
+            return;
+        }
+
+        static::$hasListenEvents = true;
+        $this->getEvents()->listen(JobFailed::class, function (JobFailed $event) {
+            $this->logFailedJob($event);
+        });
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
+    protected function logFailedJob(JobFailed $event)
+    {
+        $this->getQueueFailer()->log(
+            $event->connectionName,
+            $event->job->getQueue(),
+            $event->job->getRawBody(),
+            $event->exception
+        );
+    }
+
+    /**
+     * @throws BindingResolutionException
      */
     protected function getRequest(): Request
     {
@@ -99,43 +132,24 @@ class InvokeAction
     /**
      * @throws BindingResolutionException
      */
+    protected function getQueueWorker(): Worker
+    {
+        return $this->getContainer()->make('queue.worker');
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
+    protected function getQueueFailer(): FailedJobProviderInterface
+    {
+        return $this->getContainer()->make('queue.failer');
+    }
+
+    /**
+     * @throws BindingResolutionException
+     */
     protected function getEvents(): EventsDispatcher
     {
         return $this->getContainer()->make('events');
-    }
-
-    /**
-     * @return IlluminateContainer
-     */
-    protected function getContainer(): IlluminateContainer
-    {
-        return IlluminateContainer::getInstance();
-    }
-
-    /**
-     * Listen for the queue events in order to update the console output.
-     *
-     * @return void
-     *
-     * @throws BindingResolutionException
-     */
-    protected function listenForEvents()
-    {
-        if (static::$hasListenEvents) {
-            return;
-        }
-
-        static::$hasListenEvents = true;
-        $this->getEvents()->listen(JobFailed::class, LogFailedJob::class);
-    }
-
-    /**
-     * @return JsonResponse
-     *
-     * @throws Throwable
-     */
-    public function __invoke(): JsonResponse
-    {
-        return $this->action();
     }
 }
