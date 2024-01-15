@@ -15,6 +15,7 @@ use HughCube\GuzzleHttp\HttpClientTrait;
 use HughCube\GuzzleHttp\LazyResponse;
 use HughCube\Laravel\AliFC\Config\Config;
 use HughCube\Laravel\AliFC\Util\OpenApiUtil;
+use Psr\Http\Message\RequestInterface;
 
 class Client
 {
@@ -66,7 +67,7 @@ class Client
 
         $config['handler'] = $handler = HandlerStack::create();
 
-        /** 替换http请求的host头信息 */
+        /** 补齐请求的信息 */
         $handler->push(function (callable $handler) {
             return OpenApiUtil::completeRequestMiddleware($this, $handler);
         });
@@ -74,6 +75,20 @@ class Client
         /** fcApi签名 */
         $handler->push(function (callable $handler) {
             return OpenApiUtil::fcApiSignatureRequestMiddleware($this, $handler);
+        });
+
+        /** 证书认证 */
+        $handler->push(function (callable $handler) {
+            return function (RequestInterface $request, array $options) use ($handler) {
+                /** When you forcibly change the host using HTTPS, HTTPS authentication must be disabled. */
+                if ('https' === $request->getUri()->getScheme()
+                    && $request->getUri()->getHost() !== $request->getHeaderLine('Host')
+                ) {
+                    $options[RequestOptions::VERIFY] = false;
+                }
+
+                return $handler($request, $options);
+            };
         });
 
         return new HttpClient(array_merge(['base_uri' => $this->getConfig()->getFcBaseUri()], $config));

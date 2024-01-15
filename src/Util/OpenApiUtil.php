@@ -8,76 +8,53 @@
 
 namespace HughCube\Laravel\AliFC\Util;
 
-use GuzzleHttp\RequestOptions;
+use Closure;
 use HughCube\Laravel\AliFC\Client;
 use HughCube\PUrl\HUrl;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Psr\Http\Message\RequestInterface;
 
 class OpenApiUtil
 {
-    public static function getCanonicalQueryString($query)
-    {
-        ksort($query);
-
-        $params = [];
-        foreach ($query as $k => $v) {
-            if (null === $v) {
-                continue;
-            }
-            $str = rawurlencode($k);
-            if ('' !== $v && null !== $v) {
-                $str .= '='.rawurlencode($v);
-            } else {
-                $str .= '=';
-            }
-            $params[] = $str;
-        }
-
-        return implode('&', $params);
-    }
-
-    public static function hash($string, $signatureAlgorithm)
+    public static function hash($string, $signatureAlgorithm): string
     {
         return bin2hex(hash('sha256', $string, true));
     }
 
-    public static function signature($secret, $string, $signatureAlgorithm)
+    public static function signature($secret, $string, $signatureAlgorithm): string
     {
         return bin2hex(hash_hmac('sha256', $string, $secret, true));
     }
 
-    public static function completeRequestMiddleware(Client $client, callable $handler)
+    public static function completeRequestMiddleware(Client $client, callable $handler): Closure
     {
         return function (RequestInterface $request, array $options) use ($client, $handler) {
-            if (! $request->hasHeader('Host') && ! empty($host = $client->getConfig()->getHost())) {
+            if (!$request->hasHeader('Host') && !empty($host = $client->getConfig()->getHost())) {
                 $request = $request->withHeader('Host', $host);
             }
 
-            if (! $request->hasHeader('Host')) {
+            if (!$request->hasHeader('Host')) {
                 $request = $request->withHeader('Host', $request->getUri()->getHost());
             }
 
-            if (! $request->hasHeader('Date')) {
+            if (!$request->hasHeader('Date')) {
                 $request = $request->withHeader('Date', gmdate('D, d M Y H:i:s T'));
             }
 
-            if (! $request->hasHeader('Content-Type')) {
+            if (!$request->hasHeader('Content-Type')) {
                 $request = $request->withHeader('Content-Type', 'application/octet-stream');
             }
 
-            /** When you forcibly change the host using HTTPS, HTTPS authentication must be disabled. */
-            if ('https' === $request->getUri()->getScheme()
-                && $request->getUri()->getHost() !== $request->getHeaderLine('Host')
-            ) {
-                $options[RequestOptions::VERIFY] = false;
+            if (Str::startsWith($request->getHeaderLine('User-Agent'), 'GuzzleHttp')) {
+                $request = $request->withoutHeader('User-Agent');
             }
 
             return $handler($request, $options);
         };
     }
 
-    public static function fcApiSignatureRequestMiddleware(Client $client, callable $handler)
+    public static function fcApiSignatureRequestMiddleware(Client $client, callable $handler): Closure
     {
         return function (RequestInterface $request, array $options) use ($client, $handler) {
             if (empty($options['fcApi'])) {
@@ -95,15 +72,18 @@ class OpenApiUtil
                 ->withHeader('X-Acs-Version', $apiVersion)
                 ->withHeader('Host', $client->getConfig()->getEndpoint())
                 ->withHeader('X-Acs-Date', gmdate('Y-m-d\\TH:i:s\\Z'))
-                ->withHeader('X-Acs-Signature-Nonce', md5(uniqid().uniqid(md5(microtime(true)), true)))
                 ->withoutHeader('Authorization');
 
             /** body因子 */
             $request->getBody()->rewind();
             $request = $request->withHeader(
-                'x-acs-content-sha256',
+                'X-Acs-Content-Sha256',
                 OpenApiUtil::hash($request->getBody()->getContents(), $signatureAlgorithm)
             );
+
+            /** 随机因子 */
+            $nonce = sprintf('%s-%s-%s', microtime(), $request->getHeaderLine('X-Acs-Content-Sha256'), Str::random(32));
+            $request = $request->withHeader('X-Acs-Signature-Nonce', sprintf('%s%s', md5($nonce), abs(crc32($nonce))));
 
             /** 参与签名的header */
             $signHeaders = Collection::empty();
@@ -116,9 +96,11 @@ class OpenApiUtil
             $signHeaders = $signHeaders->sortKeys();
 
             /** url query因子 */
-            $canonicalQueryString = OpenApiUtil::getCanonicalQueryString(
-                HUrl::instance($request->getUri())->getQueryArray()
-            );
+            $canonicalQueryString = Collection::make(HUrl::instance($request->getUri())->getQueryArray())
+                ->sortKeys()->map(function ($v, $k) {
+                    return sprintf("%s=%s", rawurlencode($k), rawurlencode($v));
+                })
+                ->join('&');
 
             /** header 因子 */
             $canonicalHeaderString = $signHeaders
