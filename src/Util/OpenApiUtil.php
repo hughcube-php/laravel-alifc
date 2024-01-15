@@ -30,19 +30,19 @@ class OpenApiUtil
     public static function completeRequestMiddleware(Client $client, callable $handler): Closure
     {
         return function (RequestInterface $request, array $options) use ($client, $handler) {
-            if (!$request->hasHeader('Host') && !empty($host = $client->getConfig()->getHost())) {
+            if (! $request->hasHeader('Host') && ! empty($host = $client->getConfig()->getHost())) {
                 $request = $request->withHeader('Host', $host);
             }
 
-            if (!$request->hasHeader('Host')) {
+            if (! $request->hasHeader('Host')) {
                 $request = $request->withHeader('Host', $request->getUri()->getHost());
             }
 
-            if (!$request->hasHeader('Date')) {
+            if (! $request->hasHeader('Date')) {
                 $request = $request->withHeader('Date', gmdate('D, d M Y H:i:s T'));
             }
 
-            if (!$request->hasHeader('Content-Type')) {
+            if (! $request->hasHeader('Content-Type')) {
                 $request = $request->withHeader('Content-Type', 'application/octet-stream');
             }
 
@@ -98,7 +98,7 @@ class OpenApiUtil
             /** url query因子 */
             $canonicalQueryString = Collection::make(HUrl::instance($request->getUri())->getQueryArray())
                 ->sortKeys()->map(function ($v, $k) {
-                    return sprintf("%s=%s", rawurlencode($k), rawurlencode($v));
+                    return sprintf('%s=%s', rawurlencode($k), rawurlencode($v));
                 })
                 ->join('&');
 
