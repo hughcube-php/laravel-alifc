@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: hugh.li
  * Date: 2024/1/14
- * Time: 12:15
+ * Time: 12:15.
  */
 
 namespace HughCube\Laravel\AliFC\Util;
@@ -50,19 +50,19 @@ class OpenApiUtil
     public static function completeRequestMiddleware(Client $client, callable $handler)
     {
         return function (RequestInterface $request, array $options) use ($client, $handler) {
-            if (!$request->hasHeader('Host') && !empty($host = $client->getConfig()->getHost())) {
+            if (! $request->hasHeader('Host') && ! empty($host = $client->getConfig()->getHost())) {
                 $request = $request->withHeader('Host', $host);
             }
 
-            if (!$request->hasHeader('Host')) {
+            if (! $request->hasHeader('Host')) {
                 $request = $request->withHeader('Host', $request->getUri()->getHost());
             }
 
-            if (!$request->hasHeader('Date')) {
+            if (! $request->hasHeader('Date')) {
                 $request = $request->withHeader('Date', gmdate('D, d M Y H:i:s T'));
             }
 
-            if (!$request->hasHeader('Content-Type')) {
+            if (! $request->hasHeader('Content-Type')) {
                 $request = $request->withHeader('Content-Type', 'application/octet-stream');
             }
 
@@ -124,11 +124,11 @@ class OpenApiUtil
             $canonicalHeaderString = $signHeaders
                 ->map(function ($v, $k) {
                     $value = trim(str_replace(["\t", "\n", "\r", "\f"], '', $v));
+
                     return sprintf("%s:%s\n", strtolower($k), $value);
                 })
-                ->join("");
+                ->join('');
             $canonicalHeaderString = $canonicalHeaderString ?: "\n";
-
 
             /** 组装所有的签名因子 */
             $canonicalRequest = strtoupper($request->getMethod())."\n"

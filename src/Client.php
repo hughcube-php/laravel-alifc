@@ -8,8 +8,6 @@
 
 namespace HughCube\Laravel\AliFC;
 
-use AlibabaCloud\SDK\FC\V20230330\FC as FcClient;
-use Darabonba\OpenApi\Models\Config as FcConfig;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\RequestOptions;
 use HughCube\GuzzleHttp\Client as HttpClient;
