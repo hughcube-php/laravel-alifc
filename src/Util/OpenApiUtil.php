@@ -11,6 +11,7 @@ namespace HughCube\Laravel\AliFC\Util;
 use Closure;
 use HughCube\Laravel\AliFC\Client;
 use HughCube\PUrl\HUrl;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Psr\Http\Message\RequestInterface;
@@ -30,19 +31,19 @@ class OpenApiUtil
     public static function completeRequestMiddleware(Client $client, callable $handler): Closure
     {
         return function (RequestInterface $request, array $options) use ($client, $handler) {
-            if (! $request->hasHeader('Host') && ! empty($host = $client->getConfig()->getHost())) {
+            if (!$request->hasHeader('Host') && !empty($host = $client->getConfig()->getHost())) {
                 $request = $request->withHeader('Host', $host);
             }
 
-            if (! $request->hasHeader('Host')) {
+            if (!$request->hasHeader('Host')) {
                 $request = $request->withHeader('Host', $request->getUri()->getHost());
             }
 
-            if (! $request->hasHeader('Date')) {
+            if (!$request->hasHeader('Date')) {
                 $request = $request->withHeader('Date', gmdate('D, d M Y H:i:s T'));
             }
 
-            if (! $request->hasHeader('Content-Type')) {
+            if (!$request->hasHeader('Content-Type')) {
                 $request = $request->withHeader('Content-Type', 'application/octet-stream');
             }
 
@@ -57,7 +58,7 @@ class OpenApiUtil
     public static function fcApiSignatureRequestMiddleware(Client $client, callable $handler): Closure
     {
         return function (RequestInterface $request, array $options) use ($client, $handler) {
-            if (empty($options['fcApi'])) {
+            if (empty($options['extra']['is_alifc_api'])) {
                 return $handler($request, $options);
             }
 
@@ -74,26 +75,32 @@ class OpenApiUtil
                 ->withHeader('X-Acs-Date', gmdate('Y-m-d\\TH:i:s\\Z'))
                 ->withoutHeader('Authorization');
 
-            /** body因子 */
+            /** Body Hash Header */
             $request->getBody()->rewind();
             $request = $request->withHeader(
                 'X-Acs-Content-Sha256',
                 OpenApiUtil::hash($request->getBody()->getContents(), $signatureAlgorithm)
             );
 
-            /** 随机因子 */
+            /** Nonce Header */
             $nonce = sprintf('%s-%s-%s', microtime(), $request->getHeaderLine('X-Acs-Content-Sha256'), Str::random(32));
             $request = $request->withHeader('X-Acs-Signature-Nonce', sprintf('%s%s', md5($nonce), abs(crc32($nonce))));
 
             /** 参与签名的header */
             $signHeaders = Collection::empty();
             foreach ($request->getHeaders() as $name => $values) {
-                foreach ($values as $value) {
-                    $signHeaders = $signHeaders->put(strtolower($name), $value);
-                    break;
-                }
+                $signHeaders = $signHeaders->put(strtolower($name), Arr::first($values, ''));
             }
             $signHeaders = $signHeaders->sortKeys();
+
+            /** header 因子 */
+            $canonicalHeaderString = $signHeaders
+                ->map(function ($v, $k) {
+                    $value = trim(str_replace(["\t", "\n", "\r", "\f"], '', $v));
+                    return sprintf("%s:%s\n", strtolower($k), $value);
+                })
+                ->join('');
+            $canonicalHeaderString = $canonicalHeaderString ?: "\n";
 
             /** url query因子 */
             $canonicalQueryString = Collection::make(HUrl::instance($request->getUri())->getQueryArray())
@@ -102,23 +109,13 @@ class OpenApiUtil
                 })
                 ->join('&');
 
-            /** header 因子 */
-            $canonicalHeaderString = $signHeaders
-                ->map(function ($v, $k) {
-                    $value = trim(str_replace(["\t", "\n", "\r", "\f"], '', $v));
-
-                    return sprintf("%s:%s\n", strtolower($k), $value);
-                })
-                ->join('');
-            $canonicalHeaderString = $canonicalHeaderString ?: "\n";
-
-            /** 组装所有的签名因子 */
+            /** 拼接所有的签名因子 */
             $canonicalRequest = strtoupper($request->getMethod())."\n"
                 .($request->getUri()->getPath() ?: '/')."\n"
                 .$canonicalQueryString."\n"
                 .$canonicalHeaderString."\n"
                 .$signHeaders->keys()->join(';')."\n"
-                .$request->getHeaderLine('x-acs-content-sha256');
+                .$request->getHeaderLine('X-Acs-Content-Sha256');
 
             /** 签名 */
             $signature = OpenApiUtil::signature(
@@ -128,14 +125,13 @@ class OpenApiUtil
             );
 
             /** 设置最终签名 */
-            $request = $request
-                ->withHeader('Authorization', sprintf(
-                    '%s Credential=%s,SignedHeaders=%s,Signature=%s',
-                    $signatureAlgorithm,
-                    $accessKeyId,
-                    $signHeaders->keys()->join(';'),
-                    $signature
-                ));
+            $request = $request->withHeader('Authorization', sprintf(
+                '%s Credential=%s,SignedHeaders=%s,Signature=%s',
+                $signatureAlgorithm,
+                $accessKeyId,
+                $signHeaders->keys()->join(';'),
+                $signature
+            ));
 
             return $handler($request, $options);
         };

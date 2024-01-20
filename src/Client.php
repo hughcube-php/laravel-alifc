@@ -13,9 +13,10 @@ use GuzzleHttp\RequestOptions;
 use HughCube\GuzzleHttp\Client as HttpClient;
 use HughCube\GuzzleHttp\HttpClientTrait;
 use HughCube\GuzzleHttp\LazyResponse;
+use HughCube\GuzzleHttp\Middleware\AutoSkipVerifyMiddleware;
+use HughCube\GuzzleHttp\Middleware\UseHostResolveMiddleware;
 use HughCube\Laravel\AliFC\Config\Config;
 use HughCube\Laravel\AliFC\Util\OpenApiUtil;
-use Psr\Http\Message\RequestInterface;
 
 class Client
 {
@@ -56,7 +57,7 @@ class Client
         }
 
         /** fcApi调用 */
-        $options['fcApi'] = true;
+        $options['extra']['is_alifc_api'] = true;
 
         return $this->request($method, $uri, $options);
     }
@@ -72,25 +73,24 @@ class Client
             return OpenApiUtil::completeRequestMiddleware($this, $handler);
         });
 
-        /** fcApi签名 */
+        /** fc签名 */
         $handler->push(function (callable $handler) {
             return OpenApiUtil::fcApiSignatureRequestMiddleware($this, $handler);
         });
 
-        /** 证书认证 */
+        /** 自定义host解析 */
         $handler->push(function (callable $handler) {
-            return function (RequestInterface $request, array $options) use ($handler) {
-                /** When you forcibly change the host using HTTPS, HTTPS authentication must be disabled. */
-                if ('https' === $request->getUri()->getScheme()
-                    && $request->getUri()->getHost() !== $request->getHeaderLine('Host')
-                ) {
-                    $options[RequestOptions::VERIFY] = false;
-                }
-
-                return $handler($request, $options);
-            };
+            return UseHostResolveMiddleware::middleware($handler);
         });
 
-        return new HttpClient(array_merge(['base_uri' => $this->getConfig()->getFcBaseUri()], $config));
+        /** 证书认证 */
+        $handler->push(function (callable $handler) {
+            return AutoSkipVerifyMiddleware::middleware($handler);
+        });
+
+        return new HttpClient(array_merge(
+            ['base_uri' => $this->getConfig()->getFcBaseUri()],
+            $config
+        ));
     }
 }
