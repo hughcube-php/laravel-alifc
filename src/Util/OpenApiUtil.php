@@ -11,7 +11,6 @@ namespace HughCube\Laravel\AliFC\Util;
 use Closure;
 use HughCube\Laravel\AliFC\Client;
 use HughCube\PUrl\HUrl;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Psr\Http\Message\RequestInterface;
@@ -31,19 +30,19 @@ class OpenApiUtil
     public static function completeRequestMiddleware(Client $client, callable $handler): Closure
     {
         return function (RequestInterface $request, array $options) use ($client, $handler) {
-            if (! $request->hasHeader('Host') && ! empty($host = $client->getConfig()->getHost())) {
+            if (!$request->hasHeader('Host') && !empty($host = $client->getConfig()->getHost())) {
                 $request = $request->withHeader('Host', $host);
             }
 
-            if (! $request->hasHeader('Host')) {
+            if (!$request->hasHeader('Host')) {
                 $request = $request->withHeader('Host', $request->getUri()->getHost());
             }
 
-            if (! $request->hasHeader('Date')) {
+            if (!$request->hasHeader('Date')) {
                 $request = $request->withHeader('Date', gmdate('D, d M Y H:i:s T'));
             }
 
-            if (! $request->hasHeader('Content-Type')) {
+            if (!$request->hasHeader('Content-Type')) {
                 $request = $request->withHeader('Content-Type', 'application/octet-stream');
             }
 
@@ -68,11 +67,16 @@ class OpenApiUtil
             $accessKeySecret = $client->getConfig()->getAccessKeySecret();
             $signatureAlgorithm = $client->getConfig()->getSignatureAlgorithm();
 
+            /** 如果Header是多个, 修改为line模式 */
+            foreach (array_keys($request->getHeaders()) as $name) {
+                $request = $request->withHeader($name, $request->getHeaderLine($name));
+            }
+
             /** 默认Header */
             $request = $request
                 ->withHeader('X-Acs-Version', $apiVersion)
                 ->withHeader('Host', $client->getConfig()->getEndpoint())
-                ->withHeader('X-Acs-Date', gmdate('Y-m-d\\TH:i:s\\Z'))
+                ->withHeader('X-Acs-Date', gmdate('Y-m-d\\TH:i:s\\Z', strtotime($request->getHeaderLine('Date'))))
                 ->withoutHeader('Authorization');
 
             /** Body Hash Header */
@@ -87,28 +91,22 @@ class OpenApiUtil
             $request = $request->withHeader('X-Acs-Signature-Nonce', sprintf('%s%s', md5($nonce), abs(crc32($nonce))));
 
             /** 参与签名的header */
-            $signHeaders = Collection::empty();
-            foreach ($request->getHeaders() as $name => $values) {
-                $signHeaders = $signHeaders->put(strtolower($name), Arr::first($values, ''));
-            }
-            $signHeaders = $signHeaders->sortKeys();
+            $signHeaders = Collection::make($request->getHeaders())->mapWithKeys(function ($value, $key) {
+                return [strtolower($key) => $value[0]];
+            })->sortKeys();
 
             /** header 因子 */
-            $canonicalHeaderString = $signHeaders
-                ->map(function ($v, $k) {
-                    $value = trim(str_replace(["\t", "\n", "\r", "\f"], '', $v));
-
-                    return sprintf("%s:%s\n", strtolower($k), $value);
-                })
-                ->join('');
+            $canonicalHeaderString = $signHeaders->map(function ($v, $k) {
+                $value = trim(str_replace(["\t", "\n", "\r", "\f"], '', $v));
+                return sprintf("%s:%s\n", strtolower($k), $value);
+            })->join('');
             $canonicalHeaderString = $canonicalHeaderString ?: "\n";
 
             /** url query因子 */
             $canonicalQueryString = Collection::make(HUrl::instance($request->getUri())->getQueryArray())
                 ->sortKeys()->map(function ($v, $k) {
                     return sprintf('%s=%s', rawurlencode($k), rawurlencode($v));
-                })
-                ->join('&');
+                })->join('&');
 
             /** 拼接所有的签名因子 */
             $canonicalRequest = strtoupper($request->getMethod())."\n"
