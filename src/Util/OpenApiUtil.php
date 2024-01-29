@@ -98,6 +98,7 @@ class OpenApiUtil
             /** header 因子 */
             $canonicalHeaderString = $signHeaders->map(function ($v, $k) {
                 $value = trim(str_replace(["\t", "\n", "\r", "\f"], '', $v));
+
                 return sprintf("%s:%s\n", strtolower($k), $value);
             })->join('');
             $canonicalHeaderString = $canonicalHeaderString ?: "\n";

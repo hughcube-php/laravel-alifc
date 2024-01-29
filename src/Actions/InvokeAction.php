@@ -67,7 +67,7 @@ class InvokeAction extends Action
 
         $paths = Collection::wrap($this->getRequest()->header('x-fc-control-path'));
 
-        return $paths->isNotEmpty() && !$paths->containsStrict('/http-invoke');
+        return $paths->isNotEmpty() && ! $paths->containsStrict('/http-invoke');
     }
 
     /**
