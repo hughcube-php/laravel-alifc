@@ -17,6 +17,7 @@ use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\Worker;
 use Illuminate\Queue\WorkerOptions;
+use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -64,10 +65,9 @@ class InvokeAction extends Action
             return true;
         }
 
-        $paths = $this->getRequest()->header('x-fc-control-path');
-        $paths = is_array($paths) ? $paths : [$paths];
+        $paths = Collection::wrap($this->getRequest()->header('x-fc-control-path'));
 
-        return ! in_array('/http-invoke', $paths, true);
+        return $paths->isNotEmpty() && !$paths->containsStrict('/http-invoke');
     }
 
     /**
