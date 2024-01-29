@@ -61,8 +61,8 @@ class InvokeAction extends Action
     protected function isAllow(): bool
     {
         /** allow if set */
-        if (true === filter_var(getenv('HUGHCUBE_ALIFC_ALLOW_FIRE_JOB'), FILTER_VALIDATE_BOOLEAN)) {
-            return true;
+        if (false !== ($isAllow = getenv('HUGHCUBE_ALIFC_ALLOW_FIRE_JOB'))) {
+            return filter_var($isAllow, FILTER_VALIDATE_BOOLEAN);
         }
 
         $paths = Collection::wrap($this->getRequest()->header('x-fc-control-path'));
