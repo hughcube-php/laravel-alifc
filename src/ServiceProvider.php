@@ -84,7 +84,7 @@ class ServiceProvider extends IlluminateServiceProvider
             Route::any('/pre-freeze', $handler)->name('alifc_handler_pre_freeze');
         }
 
-        if (false !== ($handler = $config->get('alifc.handlers.pre_freeze', PreStopAction::class))) {
+        if (false !== ($handler = $config->get('alifc.handlers.pre_stop', PreStopAction::class))) {
             Route::any('/pre-stop', $handler)->name('alifc_handler_pre_stop');
         }
     }
