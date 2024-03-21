@@ -73,19 +73,19 @@ class ServiceProvider extends IlluminateServiceProvider
         $config = $this->app->make('config');
 
         if (false !== ($handler = $config->get('alifc.handlers.initialize', InitializeAction::class))) {
-            Route::any('/initialize', $handler)->name('alifc_handler_initialize');
+            Route::any('/initialize', $handler)->name('alifc.handler.initialize');
         }
 
         if (false !== ($handler = $config->get('alifc.handlers.invoke', InvokeAction::class))) {
-            Route::any('/invoke', $handler)->name('alifc_handler_invoke');
+            Route::any('/invoke', $handler)->name('alifc.handler.invoke');
         }
 
         if (false !== ($handler = $config->get('alifc.handlers.pre_freeze', PreFreezeAction::class))) {
-            Route::any('/pre-freeze', $handler)->name('alifc_handler_pre_freeze');
+            Route::any('/pre-freeze', $handler)->name('alifc.handler.preFreeze');
         }
 
         if (false !== ($handler = $config->get('alifc.handlers.pre_stop', PreStopAction::class))) {
-            Route::any('/pre-stop', $handler)->name('alifc_handler_pre_stop');
+            Route::any('/pre-stop', $handler)->name('alifc.handler.preStop');
         }
     }
 }
