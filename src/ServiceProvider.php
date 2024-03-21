@@ -14,6 +14,7 @@ use HughCube\Laravel\AliFC\Actions\PreFreezeAction;
 use HughCube\Laravel\AliFC\Actions\PreStopAction;
 use HughCube\Laravel\AliFC\Commands\JobPayloadCommand;
 use HughCube\Laravel\AliFC\Queue\Connector;
+use Illuminate\Config\Repository;
 use Illuminate\Foundation\Application;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Facades\Route;
@@ -68,19 +69,22 @@ class ServiceProvider extends IlluminateServiceProvider
             return;
         }
 
-        if (false !== ($handler = config('alifc.handlers.initialize', InitializeAction::class))) {
+        /** @var Repository $config */
+        $config = $this->app->make('config');
+
+        if (false !== ($handler = $config->get('alifc.handlers.initialize', InitializeAction::class))) {
             Route::any('/initialize', $handler)->name('alifc_handler_initialize');
         }
 
-        if (false !== ($handler = config('alifc.handlers.invoke', InvokeAction::class))) {
+        if (false !== ($handler = $config->get('alifc.handlers.invoke', InvokeAction::class))) {
             Route::any('/invoke', $handler)->name('alifc_handler_invoke');
         }
 
-        if (false !== ($handler = config('alifc.handlers.pre_freeze', PreFreezeAction::class))) {
+        if (false !== ($handler = $config->get('alifc.handlers.pre_freeze', PreFreezeAction::class))) {
             Route::any('/pre-freeze', $handler)->name('alifc_handler_pre_freeze');
         }
 
-        if (false !== ($handler = config('alifc.handlers.pre_freeze', PreStopAction::class))) {
+        if (false !== ($handler = $config->get('alifc.handlers.pre_freeze', PreStopAction::class))) {
             Route::any('/pre-stop', $handler)->name('alifc_handler_pre_stop');
         }
     }
