@@ -53,7 +53,10 @@ class Client
         /** 设置版本号 */
         $options[RequestOptions::HEADERS]['X-Acs-Version'] = $this->getConfig()->getVersion();
         if (is_string($uri)) {
-            $uri = strtr($uri, ['{{fcApiVersion}}' => $options[RequestOptions::HEADERS]['X-Acs-Version']]);
+            /** @deprecated  */
+            $uri = strtr($uri, ['{{fcApiVersion}}' => '{{version}}']);
+
+            $uri = strtr($uri, ['{{version}}' => $options[RequestOptions::HEADERS]['X-Acs-Version']]);
         }
 
         /** fcApi调用 */

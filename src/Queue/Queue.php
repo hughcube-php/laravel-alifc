@@ -155,7 +155,7 @@ class Queue extends IlluminateQueue implements QueueContract
 
         $response = $this->client->fcApi(
             'POST',
-            sprintf('/{{fcApiVersion}}/functions/%s/invocations', $this->function),
+            sprintf('/{{version}}/functions/%s/invocations', $this->function),
             [
                 RequestOptions::BODY => $payload,
                 RequestOptions::QUERY => $query,
