@@ -8,12 +8,12 @@
 
 namespace HughCube\Laravel\AliFC\Actions;
 
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response;
 
 class PreStopAction extends Action
 {
-    protected function action(): JsonResponse
+    protected function action(): Response
     {
         $start = microtime(true);
 
